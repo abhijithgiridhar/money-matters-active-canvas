@@ -332,6 +332,7 @@ const STRATS = {
    so this page needs no login and works for anyone with the link. */
 
 /* ---------------- routing ---------------- */
+let hScenes = [], hi = 0, hTimerHandle=null, hTickHandle=null, hLbUnsub=null;
 const qs = new URLSearchParams(location.search);
 let ROLE = qs.get('mode'); // 'host' | 'player' | 'quick' | null
 const root = document.getElementById('root');
@@ -502,7 +503,6 @@ function startHost(){
   launchHostShow(defaultMarket());
 }
 
-let hScenes = [], hi = 0, hTimerHandle=null, hTickHandle=null, hLbUnsub=null;
 function launchHostShow(market){
   hScenes = buildHostScenes(market);
   const showEl = document.getElementById('showHost');
