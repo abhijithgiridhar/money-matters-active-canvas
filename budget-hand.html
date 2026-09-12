@@ -20,53 +20,49 @@
   html,body{ height:100%; margin:0; overflow:hidden; }
   body{ background:var(--ink); color:var(--paper); font-family:'Spectral',Georgia,serif; -webkit-font-smoothing:antialiased; }
 
-  .screen{ height:100dvh; width:100vw; display:flex; flex-direction:column; padding:clamp(10px,1.6vh,22px) clamp(16px,2.4vw,34px); gap:clamp(6px,1vh,14px); }
+  .screen{ height:100dvh; width:100vw; display:flex; flex-direction:column; justify-content:center; gap:clamp(16px,2.6vh,30px); padding:clamp(16px,2.6vh,34px) clamp(20px,3vw,48px); }
 
-  .top{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .top{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .home-link{ font-family:'IBM Plex Mono',monospace; font-size:clamp(10px,1.1vh,12px); color:var(--paper-dim); text-decoration:none; letter-spacing:.05em; }
+  .home-link:hover{ color:var(--gold-bright); }
   .kicker{ font-family:'IBM Plex Mono',monospace; font-size:clamp(9px,1.05vh,12px); letter-spacing:.18em; text-transform:uppercase; color:var(--gold); }
-  h1{ font-family:'Anton',sans-serif; font-weight:400; font-size:clamp(26px,4.6vh,46px); margin:2px 0 0; letter-spacing:.01em; line-height:1; }
-  .setup-line{ font-family:'IBM Plex Mono',monospace; font-size:clamp(10px,1.15vh,13px); color:var(--paper-dim); text-align:right; line-height:1.5; }
+  h1{ font-family:'Anton',sans-serif; font-weight:400; font-size:clamp(30px,5.4vh,52px); margin:2px 0 0; letter-spacing:.01em; line-height:1; }
+  .setup-line{ font-family:'IBM Plex Mono',monospace; font-size:clamp(10px,1.2vh,13px); color:var(--paper-dim); text-align:right; line-height:1.6; }
   .setup-line b{ color:var(--gold-bright); }
-  .print-btn{ font-family:'IBM Plex Mono',monospace; font-weight:700; letter-spacing:.06em; text-transform:uppercase; background:var(--gold); color:var(--ink); border:none; padding:8px 14px; border-radius:4px; cursor:pointer; font-size:clamp(9px,1vh,11px); }
 
-  .body{ flex:1; display:grid; grid-template-columns:1.15fr 1fr; gap:clamp(10px,1.6vw,22px); min-height:0; }
-  .col{ display:flex; flex-direction:column; gap:clamp(6px,0.9vh,10px); min-height:0; }
+  .body{ display:grid; grid-template-columns:1.1fr 1fr; gap:clamp(16px,2.6vw,36px); align-items:start; }
+  .col{ display:flex; flex-direction:column; gap:clamp(10px,1.6vh,16px); }
 
-  .suits{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(6px,0.9vh,10px); flex:1; }
-  .suit{ border:1px solid var(--line); background:var(--ink-2); border-radius:8px; padding:clamp(8px,1.2vh,14px); display:flex; flex-direction:column; gap:4px; }
-  .suit .sym{ font-size:clamp(18px,2.6vh,26px); line-height:1; }
+  .suits{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,1.4vh,14px); }
+  .suit{ border:1px solid var(--line); background:var(--ink-2); border-radius:8px; padding:clamp(12px,1.8vh,18px); display:flex; flex-direction:column; gap:6px; }
+  .suit .sym{ font-size:clamp(20px,3vh,28px); line-height:1; }
   .suit .sym.red{ color:var(--red-bright); } .suit .sym.black{ color:var(--paper); }
-  .suit .name{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:clamp(10px,1.2vh,13px); letter-spacing:.08em; text-transform:uppercase; color:var(--gold); }
-  .suit .rule{ font-size:clamp(11px,1.3vh,14px); line-height:1.35; color:var(--paper); }
+  .suit .name{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:clamp(11px,1.3vh,13.5px); letter-spacing:.08em; text-transform:uppercase; color:var(--gold); }
+  .suit .rule{ font-size:clamp(12px,1.45vh,15px); line-height:1.4; color:var(--paper); }
 
-  h2{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:clamp(10px,1.2vh,13px); letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); margin:0; }
+  h2{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:clamp(11px,1.3vh,13.5px); letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); margin:0; }
 
-  ol.steps{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:3px; }
-  ol.steps li{ font-size:clamp(11px,1.35vh,14.5px); line-height:1.35; color:var(--paper); }
+  ol.steps{ margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; }
+  ol.steps li{ font-size:clamp(12.5px,1.5vh,15.5px); line-height:1.4; color:var(--paper); }
   ol.steps b{ color:var(--gold-bright); }
 
-  .score-box{ border:1px solid var(--gold); background:rgba(201,162,39,.08); border-radius:8px; padding:clamp(8px,1.1vh,12px); font-family:'IBM Plex Mono',monospace; font-size:clamp(11px,1.3vh,14px); color:var(--gold-bright); text-align:center; }
+  .score-box{ border:1px solid var(--gold); background:rgba(201,162,39,.08); border-radius:8px; padding:clamp(10px,1.4vh,14px); font-family:'IBM Plex Mono',monospace; font-size:clamp(12px,1.4vh,15px); color:var(--gold-bright); text-align:center; }
 
-  .debrief{ border-top:1px dashed var(--line); padding-top:clamp(6px,0.8vh,8px); display:flex; flex-direction:column; gap:2px; }
-  .debrief li{ font-style:italic; font-size:clamp(10px,1.2vh,13px); color:var(--paper-dim); line-height:1.3; list-style:none; }
+  .row-buttons{ display:flex; gap:10px; margin-top:4px; }
+  .btn{ font-family:'IBM Plex Mono',monospace; font-weight:700; letter-spacing:.06em; text-transform:uppercase; font-size:clamp(10px,1.15vh,12.5px); border:1px solid var(--line); background:var(--ink-2); color:var(--paper); padding:10px 16px; border-radius:5px; cursor:pointer; }
+  .btn:hover{ border-color:var(--gold); color:var(--gold-bright); }
+  .btn.gold{ background:var(--gold); color:var(--ink); border-color:var(--gold); }
+  .btn.gold:hover{ color:var(--ink); opacity:.9; }
 
-  .footer{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:clamp(8px,0.95vh,10.5px); color:var(--paper-dim); opacity:.6; letter-spacing:.06em; }
+  .footer{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:clamp(9px,1vh,10.5px); color:var(--paper-dim); opacity:.55; letter-spacing:.06em; }
 
-  @media print{
-    body{ overflow:visible; }
-    .screen{ display:none; }
-    .printsheet{ display:block !important; }
-  }
-  .printsheet{ display:none; }
-  @media print{
-    .printsheet{ display:block; background:#f1ecdd; color:#211d15; padding:20px; }
-    .printsheet .card{ border:1.5px solid #211d15; border-radius:8px; padding:18px 20px; margin-bottom:16px; page-break-inside:avoid; }
-    .printsheet h2{ font-family:'Anton',sans-serif; font-size:22px; margin:0 0 8px; color:#211d15; }
-    .printsheet .row{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:13px; border-bottom:1px dashed #c9c2ac; padding:6px 0; }
-    .printsheet table{ width:100%; border-collapse:collapse; margin-top:10px; }
-    .printsheet td,.printsheet th{ border:1px solid #c9c2ac; padding:6px 8px; font-family:'IBM Plex Mono',monospace; font-size:12px; text-align:center; }
-    .printsheet .foot{ font-family:'IBM Plex Mono',monospace; font-size:10px; text-align:center; margin-top:10px; color:#6b6250; }
-  }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(6,8,7,.88); display:none; align-items:center; justify-content:center; z-index:50; padding:24px; }
+  .modal-backdrop.show{ display:flex; }
+  .modal{ background:var(--ink-2); border:1px solid var(--gold); border-radius:12px; padding:32px 36px; max-width:560px; width:100%; }
+  .modal h2{ color:var(--gold-bright); font-size:14px; margin-bottom:16px; }
+  .modal ul{ list-style:none; margin:0 0 20px; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .modal li{ font-style:italic; font-size:17px; line-height:1.5; color:var(--paper); padding-bottom:14px; border-bottom:1px dashed var(--line); }
+  .modal li:last-child{ border-bottom:none; padding-bottom:0; }
 </style>
 </head>
 <body>
@@ -74,13 +70,13 @@
 <div class="screen">
   <div class="top">
     <div>
-      <div class="kicker">GamesForEd × Active Canvas — The Quick Game</div>
+      <a href="index.html" class="home-link">← Back to homepage</a>
+      <div class="kicker" style="margin-top:6px;">GamesForEd × Active Canvas — The Quick Game</div>
       <h1>BUDGET HAND</h1>
     </div>
     <div class="setup-line">
       <b>3+ players per table</b> (6–7 works well) · <b>1 standard deck</b> per table, jokers out · <b>15–20 min</b><br>
       Card value = number × ₹100 · J=1,100 · Q=1,200 · K=1,300 · A=100
-      <div><button class="print-btn" onclick="window.print()">Print table scorecards</button></div>
     </div>
   </div>
 
@@ -93,12 +89,6 @@
         <div class="suit"><span class="sym red">♦</span><span class="name">Diamonds — Wants</span><span class="rule">10 seconds: Pay (value moves Wallet → Joy) or Skip (nothing happens).</span></div>
         <div class="suit"><span class="sym black">♠</span><span class="name">Spades — Emergency</span><span class="rule">Pay from Fund only. Fund can't cover it? Shortfall × 1.5 becomes Debt.</span></div>
       </div>
-      <div class="debrief">
-        <h2 style="margin-bottom:4px;">Debrief — ask the room</h2>
-        <li>Which suit did you dread? Which did you enjoy?</li>
-        <li>Did your Emergency Fund ever save you from Debt?</li>
-        <li>What tipped a Diamonds decision your way?</li>
-      </div>
     </div>
 
     <div class="col">
@@ -110,38 +100,25 @@
         <li>Keep drawing until the deck runs out, or your facilitator calls time (~20–25 cards is a good quick round).</li>
       </ol>
       <div class="score-box">FINAL SCORE = WALLET + EMERGENCY FUND + JOY − DEBT</div>
-      <h2>Facilitator tip</h2>
-      <ol class="steps"><li>Don't referee Clubs/Spades — the rule is automatic. Only step in if a Diamonds call stalls a table.</li></ol>
+      <p style="font-size:clamp(11px,1.3vh,13px); color:var(--paper-dim); font-style:italic; margin:0;"><b style="color:var(--gold); font-style:normal;">Facilitator tip:</b> don't referee Clubs/Spades — the rule is automatic. Only step in if a Diamonds call stalls a table.</p>
+      <div class="row-buttons">
+        <button class="btn gold" onclick="document.getElementById('debriefModal').classList.add('show')">💬 Debrief questions</button>
+      </div>
     </div>
   </div>
 
   <div class="footer">Budget Hand · GamesForEd × Active Canvas</div>
 </div>
 
-<div class="printsheet">
-  <div class="card">
-    <h2>BUDGET HAND — Table Scorecard</h2>
-    <div class="row"><span>Table name</span><span>_______________________</span></div>
-    <table>
-      <tr><th></th><th>Wallet</th><th>Emergency Fund</th><th>Joy</th><th>Debt</th></tr>
-      <tr><td>Running total</td><td></td><td></td><td></td><td></td></tr>
-    </table>
-    <p style="font-size:11px; margin-top:10px;">♥ Hearts = Income (10% to Fund) · ♣ Clubs = Needs (pay, or Fund, or Debt) · ♦ Diamonds = Wants (Pay to Joy or Skip) · ♠ Spades = Emergency (Fund only, or shortfall ×1.5 = Debt)</p>
-    <p style="font-size:11px;">Card value = number × ₹100 · J=1,100 · Q=1,200 · K=1,300 · A=100 · 3+ players per table (6–7 works well)</p>
-    <p style="font-size:12px; margin-top:8px;"><b>Final score = Wallet + Fund + Joy − Debt</b></p>
-    <p class="foot">GamesForEd × Active Canvas</p>
-  </div>
-  <div class="card">
-    <h2>BUDGET HAND — Table Scorecard</h2>
-    <div class="row"><span>Table name</span><span>_______________________</span></div>
-    <table>
-      <tr><th></th><th>Wallet</th><th>Emergency Fund</th><th>Joy</th><th>Debt</th></tr>
-      <tr><td>Running total</td><td></td><td></td><td></td><td></td></tr>
-    </table>
-    <p style="font-size:11px; margin-top:10px;">♥ Hearts = Income (10% to Fund) · ♣ Clubs = Needs (pay, or Fund, or Debt) · ♦ Diamonds = Wants (Pay to Joy or Skip) · ♠ Spades = Emergency (Fund only, or shortfall ×1.5 = Debt)</p>
-    <p style="font-size:11px;">Card value = number × ₹100 · J=1,100 · Q=1,200 · K=1,300 · A=100 · 3+ players per table (6–7 works well)</p>
-    <p style="font-size:12px; margin-top:8px;"><b>Final score = Wallet + Fund + Joy − Debt</b></p>
-    <p class="foot">GamesForEd × Active Canvas</p>
+<div class="modal-backdrop" id="debriefModal" onclick="if(event.target===this) this.classList.remove('show')">
+  <div class="modal">
+    <h2>DEBRIEF — ASK THE ROOM</h2>
+    <ul>
+      <li>Which suit did you dread seeing? Which one did you actually enjoy?</li>
+      <li>Did your Emergency Fund ever save your table from going into Debt?</li>
+      <li>Was there a moment your table argued about a Diamond? What tipped the decision?</li>
+    </ul>
+    <button class="btn" onclick="document.getElementById('debriefModal').classList.remove('show')">Close</button>
   </div>
 </div>
 

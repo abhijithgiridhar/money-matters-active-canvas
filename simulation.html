@@ -210,32 +210,30 @@ const SUPPORT = 5000;
 const MONTHS = [
  {n:1, job:14000, fixed:1800,
    cards:[{t:'Your phone screen cracks badly — you can barely read messages. A repair shop near college can fix it today.', c:900, tag:'necessity'},
-          {t:'A classmate is turning 19 this weekend. The friend group is chipping in for a gift.', c:600, tag:'social'}]},
+          {t:'A classmate is turning 19 this weekend. The friend group is chipping in for a gift.', c:600, tag:'social', casual:true}]},
  {n:2, job:13000, fixed:2400, fixedNote:'includes a ₹600 late course-registration fee',
    cards:[{t:'New semester — you need fresh notebooks and stationery for every subject.', c:500, tag:'necessity'},
           {t:'A 50%-off sale on a dress you’ve wanted for weeks ends tonight.', c:1100, tag:'discretionary'}]},
  {n:3, job:15000, fixed:1800, flavor:'First investing round — your Emergency Fund already has two months in it.',
-   cards:[{t:'A classmate is leaving college. The group is chipping in for a farewell gift.', c:400, tag:'social'},
+   cards:[{t:'A classmate is leaving college. The group is chipping in for a farewell gift.', c:400, tag:'social', casual:true},
           {t:'A classmate is running a "double your money in 30 days" investment circle. She says it’s guaranteed.', c:1200, tag:'scam'}]},
  {n:4, job:22000, fixed:1800, flavor:'Ganesh Chaturthi season — extra tutoring gigs mean a windfall month.',
    cards:[{t:'A one-day resume-building workshop is being offered near campus.', c:1600, tag:'selfinvest'},
           {t:'A younger student at your community centre is short on entrance-exam fees. The group is chipping in.', c:1200, tag:'social'}]},
  {n:5, job:16000, fixed:3400, fixedNote:'includes a ₹1,600 hostel maintenance top-up',
    cards:[{t:'Your laptop charger has stopped working. You need it for classes.', c:1000, tag:'necessity'},
-          {t:'A friend is moving cities. The group wants a farewell movie together.', c:500, tag:'social'}]},
- {n:6, job:13000, fixed:1800, flavor:'Job hours got cut this month — a normal dip that part-time work has.',
-   cards:[{t:'That sale dress is back — 60% off now, even better than before.', c:900, tag:'discretionary'},
-          {t:'Navratri season — everyone’s renting outfits for garba nights.', c:900, tag:'discretionary'}]},
- {n:7, job:18000, fixed:1800, flavor:'Diwali season is here.',
+          {t:'A friend is moving cities. The group wants a farewell movie together.', c:500, tag:'social', casual:true}]},
+ {n:6, job:0, fixed:1800, emergency:5000, flavor:'A sudden dental infection — you need treatment right away.', cards:[]},
+ {n:7, job:18000, fixed:1800, rebuildNudge:true, flavor:'Diwali season is here.',
    cards:[{t:'Diwali — everyone around you is buying new outfits for the celebrations.', c:1800, tag:'discretionary'},
-          {t:'Diwali sweets and diyas to share with your friend circle.', c:700, tag:'social'}]},
+          {t:'Diwali sweets and diyas to share with your friend circle.', c:700, tag:'social', casual:true}]},
  {n:8, job:14000, fixed:1800,
    cards:[{t:'Monsoon rain got into your bag — your phone has water damage and needs repair.', c:1300, tag:'necessity'},
           {t:'Your scholarship renewal is delayed. Do you take a quick private loan to cover this month’s fee gap while you wait?', c:2200, tag:'discretionary'}]},
  {n:9, job:0, fixed:1800, emergency:7000, flavor:'You’ve fallen sick and missed every shift this month.', cards:[]},
  {n:10, job:14000, fixed:1800, rebuildNudge:true, flavor:'Back on your feet. Time to rebuild.',
    cards:[{t:'You need new shoes before internship interviews start.', c:1400, tag:'necessity'},
-          {t:'You want to thank the friend who looked after you while you were sick.', c:600, tag:'social'}]},
+          {t:'You want to thank the friend who looked after you while you were sick.', c:600, tag:'social', casual:true}]},
  {n:11, job:19000, fixed:1800, flavor:'A placement-prep tutoring gig picks up.',
    cards:[{t:'You need a travel pass to get to the tutoring gig.', c:900, tag:'necessity'},
           {t:'An upskilling course you’ve been wanting to take is open for enrolment.', c:1400, tag:'selfinvest'}]},
@@ -244,32 +242,30 @@ const MONTHS = [
           {t:'You need a proper bag for the year ahead.', c:1000, tag:'necessity'}]},
  {n:13, job:24000, fixed:7500, fixedNote:'you’ve moved out for the internship — real rent, for the first time', flavor:'Year 2 begins. The subsidised hostel is behind you now.',
    cards:[{t:'You need work-appropriate clothes for the internship.', c:1700, tag:'necessity'},
-          {t:'Your new team goes out for lunch on your first week. Everyone chips in.', c:600, tag:'social'}]},
+          {t:'Your new team goes out for lunch on your first week. Everyone chips in.', c:600, tag:'social', casual:true}]},
  {n:14, job:24000, fixed:7500,
    cards:[{t:'Holi — colours and supplies to celebrate with friends.', c:600, tag:'discretionary'},
           {t:'A good umbrella and raincoat before the monsoon starts.', c:800, tag:'necessity'}]},
  {n:15, job:27000, fixed:7800, flavor:'A strong month at the internship — first investing round of Year 2.',
    cards:[{t:'A professional certification exam could strengthen your resume.', c:2800, tag:'selfinvest'},
           {t:'An IPL fantasy app promises easy winnings this season. Entry fee just this once?', c:600, tag:'scam'}]},
- {n:16, job:25000, fixed:7800,
-   cards:[{t:'A college-fest reunion trip with old friends.', c:2000, tag:'discretionary'},
-          {t:'A proper laptop bag for the daily commute to work.', c:800, tag:'necessity'}]},
- {n:17, job:29000, fixed:8000, flavor:'A performance bonus lands.',
+ {n:16, job:0, fixed:7800, emergency:8000, flavor:'A sudden vehicle repair — you didn’t see this one coming.', cards:[]},
+ {n:17, job:29000, fixed:8000, rebuildNudge:true, flavor:'A performance bonus lands.',
    cards:[{t:'Ganesh Chaturthi — a contribution to the community pandal.', c:700, tag:'social'},
           {t:'A coworker has a "hot stock tip" — she says it’s a sure thing.', c:3500, tag:'scam'}]},
  {n:18, job:24000, fixed:8000, flavor:'Diwali at the workplace this year.',
    cards:[{t:'Diwali sales are everywhere — tempting to shop beyond your list.', c:2400, tag:'discretionary'},
-          {t:'A Diwali gift exchange with your office team.', c:800, tag:'social'}]},
+          {t:'A Diwali gift exchange with your office team.', c:800, tag:'social', casual:true}]},
  {n:19, job:26000, fixed:8200,
    cards:[{t:'Your phone is too old for the apps your work now needs — time for a new one.', c:3500, tag:'necessity'},
           {t:'A weekend trip everyone’s posting about — you don’t want to miss out.', c:1800, tag:'discretionary'}]},
  {n:20, job:28000, fixed:8200,
    cards:[{t:'A client meeting means upgrading your work wardrobe.', c:1500, tag:'necessity'},
-          {t:'Friendship Day — small gifts for the circle that’s stuck with you all year.', c:600, tag:'social'}]},
+          {t:'Friendship Day — small gifts for the circle that’s stuck with you all year.', c:600, tag:'social', casual:true}]},
  {n:21, job:0, fixed:8200, emergency:10000, flavor:'A bad fall on the way to work — recovery takes the whole month, and rent doesn’t pause.', cards:[]},
  {n:22, job:25000, fixed:8200, rebuildNudge:true, flavor:'Back on your feet again. Rebuilding, a second time.',
    cards:[{t:'Physiotherapy sessions to finish your recovery properly.', c:1800, tag:'necessity'},
-          {t:'A thank-you gift for the coworkers who helped while you recovered.', c:600, tag:'social'}]},
+          {t:'A thank-you gift for the coworkers who helped while you recovered.', c:600, tag:'social', casual:true}]},
  {n:23, job:30000, fixed:8500, flavor:'A better job opportunity opens up.',
    cards:[{t:'An interview outfit for a role that could mean a real raise.', c:1800, tag:'necessity'},
           {t:'A coworker pushes a "guaranteed returns" crypto scheme — everyone’s talking about it.', c:3500, tag:'scam'}]},
@@ -281,11 +277,15 @@ const MONTHS = [
 /* ---------------- 2-round practice trial, before the real 24 months ----------------
    Same mechanics, tiny numbers, no emergency, nothing carries over — just enough to get
    everyone comfortable with the phone before the real game starts. */
+const EMERGENCY_MONTHS = MONTHS.filter(m=>m.emergency).map(m=>m.n);
+const EMERGENCY_ORDINALS = ['EMERGENCY','A SECOND EMERGENCY','A THIRD EMERGENCY','A FOURTH EMERGENCY','ANOTHER EMERGENCY'];
+function emergencyTitle(n){ const idx = EMERGENCY_MONTHS.indexOf(n); return EMERGENCY_ORDINALS[idx] || 'ANOTHER EMERGENCY'; }
+
 const TRIAL_MONTHS = [
  {n:'T1', trial:true, job:3000, fixed:600,
-   cards:[{t:'Trial round — your favourite stall is selling snacks after class.', c:150, tag:'discretionary'}]},
+   cards:[{t:'Trial round — your favourite stall is selling snacks after class.', c:150, tag:'discretionary', casual:true}]},
  {n:'T2', trial:true, job:3500, fixed:600,
-   cards:[{t:'Trial round — your earphones stop working right before an exam.', c:300, tag:'necessity'}]},
+   cards:[{t:'Trial round — your earphones stop working right before an exam.', c:300, tag:'necessity', casual:true}]},
 ];
 
 /* ---------------- default market arc (facilitator can edit every cell before the show) ----------------
@@ -345,6 +345,10 @@ let fdb = null;
 try{
   firebase.initializeApp(firebaseConfig);
   fdb = firebase.firestore();
+  // Some school/venue wifi blocks the persistent WebChannel connection Firestore prefers,
+  // which makes it silently fall back to slow auto-detected long-polling (real-world delays
+  // of 30s+). Forcing long-polling up front skips that slow fallback dance entirely.
+  fdb.settings({ experimentalForceLongPolling: true, merge: true });
 }catch(e){ fdb = null; }
 
 function fbWritePlayer(id, name){
@@ -364,6 +368,29 @@ function fbWatchLeaderboard(onData, onError){
   if(!fdb) return null;
   return fdb.collection('leaderboard').orderBy('finalScore','desc').limit(20)
     .onSnapshot(snap=>onData(snap.docs.map(d=>d.data())), onError);
+}
+
+/* ---------------- facilitator-controlled pace ----------------
+   The host writes the current unlocked month to session/state; every phone watches it and
+   won't advance into the NEXT month's content until the host has actually started it. */
+function fbSetGate(month){
+  if(!fdb) return;
+  fdb.collection('session').doc('state').set({ gate: month }, { merge: true }).catch(()=>{});
+}
+function fbWatchGate(onData, onError){
+  if(!fdb) return null;
+  return fdb.collection('session').doc('state')
+    .onSnapshot(doc=>onData(doc.exists ? (doc.data().gate || 0) : 0), onError);
+}
+async function fbResetSession(){
+  if(!fdb) return;
+  for(const col of ['players','leaderboard']){
+    const snap = await fdb.collection(col).get();
+    let batch = fdb.batch(); let n = 0;
+    for(const d of snap.docs){ batch.delete(d.ref); n++; if(n>=400){ await batch.commit(); batch = fdb.batch(); n=0; } }
+    if(n>0) await batch.commit();
+  }
+  await fdb.collection('session').doc('state').set({ gate: 0 });
 }
 
 /* ---------------- routing ---------------- */
@@ -390,7 +417,7 @@ function renderChooser(){
       <div class="choice-card" onclick="location.search='?mode=player'"><div class="ic">📱</div><div class="n">Player</div><div class="d">Play along on your own phone. Your choices, your balance, your spot on the leaderboard.</div></div>
       <div class="choice-card" onclick="location.search='?mode=quick'"><div class="ic">⚡</div><div class="n">Quick Taster</div><div class="d">A 3-month solo preview — no room, no leaderboard, just a feel for how it plays.</div></div>
     </div>
-    <div class="footer-note" style="opacity:.5; font-family:'IBM Plex Mono',monospace; font-size:11px;"><a href="?mode=math" style="color:var(--paper-dim);">How the maths works →</a></div>
+    <div class="footer-note" style="opacity:.5; font-family:'IBM Plex Mono',monospace; font-size:11px;"><a href="?mode=math" style="color:var(--paper-dim);">How the maths works →</a> &nbsp;·&nbsp; <a href="index.html" style="color:var(--paper-dim);">← Back to homepage</a></div>
   </div>`;
 }
 
@@ -410,29 +437,41 @@ const hsfx = {
 let musicNodes = [], musicOn = false, musicMaster = null;
 function startMusic(){
   const c = hac(); if(!c || musicOn) return; musicOn = true;
-  // Calm, sparse piano-style pentatonic ambience — soft plucked notes, long soothing decay.
-  const scale = [261.63,293.66,329.63,392.00,440.00,523.25,587.33]; // C major pentatonic-ish, one octave+
+  // Soft instrumental pad — slow overlapping sustained chords, no plucked notes, nothing
+  // percussive. Four gentle chords crossfade into one another on an eight-second cycle.
   musicMaster = c.createGain(); musicMaster.gain.value = 0.05;
-  const warmth = c.createBiquadFilter(); warmth.type='lowpass'; warmth.frequency.value = 2200;
+  const warmth = c.createBiquadFilter(); warmth.type='lowpass'; warmth.frequency.value = 1100;
   musicMaster.connect(warmth); warmth.connect(c.destination);
 
-  function pianoNote(freq, delay, dur, gain){
+  const chords = [
+    [220.00, 261.63, 329.63, 392.00],   // Am7
+    [174.61, 220.00, 261.63, 349.23],   // Fmaj7
+    [130.81, 164.81, 196.00, 246.94],   // Cmaj7
+    [196.00, 246.94, 293.66, 349.23],   // G6
+  ];
+  const HOLD = 9; // seconds each chord is held, with long overlapping fades
+  let i = 0;
+
+  function padChord(freqs, delay, dur){
     const t0 = c.currentTime + delay;
-    const o1 = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
-    o1.type='sine'; o2.type='triangle'; o1.frequency.value=freq; o2.frequency.value=freq*2.003;
-    g.gain.setValueAtTime(0,t0);
-    g.gain.linearRampToValueAtTime(gain, t0+0.04);
-    g.gain.exponentialRampToValueAtTime(0.0008, t0+dur);
-    o1.connect(g); o2.connect(g); g.connect(musicMaster);
-    o1.start(t0); o2.start(t0); o1.stop(t0+dur+0.1); o2.stop(t0+dur+0.1);
+    freqs.forEach((f,idx)=>{
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = idx===0 ? 'sine' : 'triangle';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.22/freqs.length, t0+3.0);       // slow swell in
+      g.gain.linearRampToValueAtTime(0.22/freqs.length, t0+dur-3.5);   // hold
+      g.gain.linearRampToValueAtTime(0, t0+dur);                       // slow fade out
+      o.connect(g); g.connect(musicMaster);
+      o.start(t0); o.stop(t0+dur+0.2);
+    });
   }
 
   function loop(){
     if(!musicOn) return;
-    const note = scale[Math.floor(Math.random()*scale.length)];
-    pianoNote(note, 0, 3.2+Math.random()*1.6, 0.16);
-    if(Math.random()<0.35){ pianoNote(note*1.5, 0.35, 2.6, 0.08); } // an occasional soft harmony
-    musicNodes.push(setTimeout(loop, 2400+Math.random()*1800));
+    padChord(chords[i % chords.length], 0, HOLD + 2);
+    i++;
+    musicNodes.push(setTimeout(loop, HOLD*1000));
   }
   loop();
 }
@@ -461,7 +500,7 @@ function buildHostScenes(market){
     scenes.push({type:'ef', month:label, sfx:'coin', note:'Same rule as the real game — 10% every month.', eyebrow:'PAY YOURSELF FIRST', title:'MOVE 10% TO YOUR EMERGENCY FUND', dep});
     (m.cards||[]).forEach((c,ci)=>{
       scenes.push({type:'card', month:label, note:'Read it aloud. Everyone decides on their phone.', timer:20,
-        eyebrow:'PRACTICE DECISION', card:c.t, cost:String(c.c), tag:'Is this worth it?'});
+        eyebrow:'PRACTICE DECISION', card:c.t, cost:String(c.c), tag:'Is this worth it?', casual:!!c.casual});
     });
     scenes.push({type:'settle', month:label, note:'Quick recap, then move to the next trial round (or the real game).', eyebrow:label+' DONE', title:'CHECK YOUR PHONE RECAP'});
   });
@@ -478,8 +517,8 @@ function buildHostScenes(market){
     scenes.push({type:'ef', month:'MONTH '+m.n, idx:m.n, sfx:'coin', note:'Everyone’s phone does this automatically — 10% of this month’s income.', eyebrow:'PAY YOURSELF FIRST', title:'MOVE 10% TO YOUR EMERGENCY FUND', dep});
 
     (m.cards||[]).forEach((c,ci)=>{
-      scenes.push({type:'card', month:'MONTH '+m.n, note:'Read it aloud. Everyone decides on their phone: Pay / Skip / Use Emergency Fund.', timer:25,
-        eyebrow:'DECISION '+(ci+1)+' OF '+m.cards.length, card:c.t, cost:String(c.c), tag:'Is this worth it?'});
+      scenes.push({type:'card', month:'MONTH '+m.n, note: c.casual? 'Read it aloud. Everyone decides on their phone: Pay / Skip / Use Emergency Fund.' : 'Read it aloud. No skipping this one — everyone decides Pay or Use Emergency Fund.', timer:25,
+        eyebrow:'DECISION '+(ci+1)+' OF '+m.cards.length, card:c.t, cost:String(c.c), tag: c.casual? 'Is this worth it?' : 'No skipping this one', casual:!!c.casual});
     });
 
     const isQuarterEnd = (m.n % 3 === 0);
@@ -490,7 +529,7 @@ function buildHostScenes(market){
 
     if(m.emergency){
       scenes.push({type:'emergency', month:'MONTH '+m.n, note:'The big moment. Let it sit in silence for a few seconds before speaking.', sfx:'alarm', shake:true, flash:'bad',
-        eyebrow:'EMERGENCY', title: m.n===9 ? 'HOSPITAL + MEDICINE BILL' : 'A SECOND EMERGENCY', amount:String(m.emergency), sub:'Due immediately, on top of a month with almost no income. Everyone taps through on their phone to see what happens to them.'});
+        eyebrow:'EMERGENCY', title: emergencyTitle(m.n), amount:String(m.emergency), sub:'Due immediately, on top of a month with almost no income. Everyone taps through on their phone to see what happens to them.'});
       scenes.push({type:'penalty', month:'MONTH '+m.n, note:'For anyone whose fund wasn’t enough: read the terms aloud. Deliberately a bad deal, like a real informal lender.', eyebrow:'IF YOUR FUND ISN’T ENOUGH', title:'THE PENALTY LOAN', pct:20});
     }
 
@@ -543,8 +582,10 @@ function launchHostShow(market){
   const showEl = document.getElementById('showHost');
   showEl.style.display='flex';
   showEl.innerHTML = `
+    <a class="icon-btn" href="index.html" title="Back to homepage" style="position:absolute; top:34px; left:200px; text-decoration:none; display:flex; align-items:center; justify-content:center;">🏠</a>
     <div class="topcorner" id="hLoc"></div>
     <div class="topright">
+      <button class="icon-btn" id="resetBtn" title="Reset session (clears live data)">♻️</button>
       <button class="icon-btn" id="lbBtn" title="Show leaderboard">🏆</button>
       <button class="icon-btn" id="musicBtn" title="Toggle music">🎵</button>
       <button class="icon-btn" id="muteBtn" title="Toggle sound">🔊</button>
@@ -558,6 +599,11 @@ function launchHostShow(market){
   document.getElementById('musicBtn').onclick = ()=>{ if(musicOn){ stopMusic(); document.getElementById('musicBtn').textContent='🎵'; } else { startMusic(); document.getElementById('musicBtn').textContent='🎶'; } };
   document.getElementById('muteBtn').onclick = ()=>{ hostMuted=!hostMuted; document.getElementById('muteBtn').textContent = hostMuted?'🔇':'🔊'; };
   document.getElementById('lbBtn').onclick = ()=>{ toggleLeaderboardOverlay(); };
+  document.getElementById('resetBtn').onclick = async ()=>{
+    if(!confirm('Reset the session? This clears every joined player, every score, and unlocks nothing — the next month only opens when you get there again. Do this before a real run, not during one.')) return;
+    await fbResetSession();
+    alert('Session reset. Player list and leaderboard are clear.');
+  };
   document.getElementById('stage').addEventListener('click', e=>{ if(e.target.closest('.notes')||e.target.closest('.icon-btn')||e.target.closest('#lbOverlay')) return; hgo(1); });
   window.addEventListener('keydown', e=>{
     if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); hgo(1); }
@@ -621,7 +667,7 @@ function hrender(){
       <div class="sub">10% of this month’s income = <b style="color:var(--gold-bright)">${RUPEE(s.dep)}</b></div>`; }
   else if(s.type==='card'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="card-face"><div class="narrative">"${s.card}"</div></div>
       <div class="display big">${RUPEE(num(s.cost))}</div>
-      <div class="sub" style="font-family:'IBM Plex Mono',monospace; letter-spacing:.1em; text-transform:uppercase; font-style:normal;">${s.tag} — Pay · Skip · Use Emergency Fund</div>
+      <div class="sub" style="font-family:'IBM Plex Mono',monospace; letter-spacing:.1em; text-transform:uppercase; font-style:normal;">${s.tag} — ${s.casual?'Pay · Skip · Use Emergency Fund':'Pay · Use Emergency Fund'}</div>
       <div class="timer-label" id="hTimerLabel">${s.timer}s to decide</div><div class="bar-wrap"><div class="bar-fill" id="hBarFill"></div></div>`; }
   else if(s.type==='investchoice'){ html=`<div class="eyebrow gold">${s.eyebrow}</div><div class="display big">${s.title}</div>
       <div class="ledger"><div class="lrow"><span class="lb">Gold</span><span class="v" style="font-style:italic;color:var(--paper-dim);font-weight:400;">stable, slow</span></div>
@@ -646,6 +692,7 @@ function hrender(){
 
   el.classList.remove('enter'); el.innerHTML = html; void el.offsetWidth; el.classList.add('enter');
   if(s.type==='qr'){ renderQR(document.getElementById('qrTarget'), s.url); startJoinLobby(); } else { stopJoinLobby(); }
+  if(s.type==='month' && typeof s.idx==='number'){ fbSetGate(s.idx); }
 
   document.getElementById('stage').classList.remove('shake');
   if(s.shake){ void document.getElementById('stage').offsetWidth; document.getElementById('stage').classList.add('shake'); }
@@ -702,6 +749,22 @@ function startPlayer(isQuick){
 
   // Market numbers are the same fixed defaultMarket() the host uses — no backend needed to keep them in sync.
   const market = defaultMarket();
+
+  // Facilitator-controlled pace: liveGate is the highest month the host has actually reached.
+  let liveGate = 0, waitingFor = null, waitingResolve = null;
+  if(!isQuick){
+    fbWatchGate(g=>{
+      liveGate = g;
+      if(waitingFor!=null && liveGate>=waitingFor){ const r=waitingResolve; waitingFor=null; waitingResolve=null; if(r) r(); }
+    });
+  }
+  function waitForGate(month, cb){
+    if(isQuick || liveGate>=month){ cb(); return; }
+    waitingFor = month; waitingResolve = cb;
+    const stage = document.getElementById('pstage');
+    stage.innerHTML = `<div class="eyebrow gold">HOLD ON</div><h1 class="disp lg">WAITING FOR YOUR FACILITATOR</h1><div class="psub">Month ${month} hasn’t started on the big screen yet. This continues on its own the moment it does.</div>`;
+    stage.classList.remove('enter'); void stage.offsetWidth; stage.classList.add('enter');
+  }
 
   let state = { name:'', wallet:0, ef:0, gold:0, sip:0, stocks:0, loan:0, quarterIncomeSum:0,
     flags:{dipUsedForNonEmergency:false, scamPaid:false, socialPaid:0, socialTotal:0, selfinvestPaid:0, investRounds:0} };
@@ -783,10 +846,13 @@ function startPlayer(isQuick){
     let html='';
 
     if(st.type==='welcome'){
+      const hasSaved = !isQuick && (state.wallet||state.ef||invTotal()||state.name);
       html = `<div class="eyebrow">${isQuick?'QUICK TASTER':'A TWO-YEAR SIMULATION'}</div><h1 class="disp xl gold">MONEY<br>MATTERS</h1>
-        <div class="psub">${isQuick?'Three months, just for you — a feel for how the year plays out.':'Twenty-four months. This phone does the maths — you make the calls. At the end, tell your facilitator your final score for the leaderboard.'}</div>
+        <div class="psub">${isQuick?'Three months, just for you — a feel for how the year plays out.':'Twenty-four months. This phone does the maths — you make the calls. Your final score joins the leaderboard automatically.'}</div>
         <input class="nametxt" id="nameInput" placeholder="Your name${isQuick?' (optional)':' (for the leaderboard)'}" value="${state.name||''}">
-        <button class="pbtn big" onclick="window.__mm_start()">Begin →</button>`;
+        <button class="pbtn big" onclick="window.__mm_start()">Begin →</button>
+        ${hasSaved?`<button class="pbtn ghost" onclick="window.__mm_restart()">Reset my progress</button>`:''}
+        <a href="index.html" class="footer-note" style="text-decoration:none; display:block; margin-top:6px;">← Back to homepage</a>`;
     }
     else if(st.type==='rules'){
       html = `<div class="eyebrow">BEFORE MONTH 1</div><h1 class="disp lg">THREE PLACES FOR YOUR MONEY</h1>
@@ -825,12 +891,12 @@ function startPlayer(isQuick){
         <button class="pbtn big" onclick="window.__mm_ef(${dep})">Move it →</button>`;
     }
     else if(st.type==='card'){
-      const c = st.c; const canDip = state.ef>=c.c;
+      const c = st.c; const canDip = state.ef>=c.c; const canSkip = !!c.casual;
       html = `<div class="eyebrow">DECISION ${st.idx+1} OF ${st.m.cards.length}</div>
-        <div class="card-stack"><div class="swipe-card" id="swipeCard"><span class="swipe-hint left" id="hintLeft">SKIP</span><span class="swipe-hint right" id="hintRight">PAY</span><div class="txt">"${c.t}"</div></div></div>
+        <div class="card-stack"><div class="swipe-card" id="swipeCard">${canSkip?'<span class="swipe-hint left" id="hintLeft">SKIP</span>':''}<span class="swipe-hint right" id="hintRight">PAY</span><div class="txt">"${c.t}"</div></div></div>
         <h1 class="disp lg">${RUPEE(c.c)}</h1>
-        <div class="psub" style="font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;">Drag the card, or use the buttons.</div>
-        <div class="prow2"><button class="pbtn ghost" onclick="window.__mm_card(false)">✋ Skip</button><button class="pbtn" onclick="window.__mm_card(true)">✅ Pay ${RUPEE(c.c)}</button></div>
+        <div class="psub" style="font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;">${canSkip?'Drag the card, or use the buttons.':'No skipping this one — pay it, or use your fund.'}</div>
+        <div class="prow2">${canSkip?'<button class="pbtn ghost" onclick="window.__mm_card(false)">✋ Skip</button>':''}<button class="pbtn" onclick="window.__mm_card(true)">✅ Pay ${RUPEE(c.c)}</button></div>
         <button class="pbtn ghost" style="border-style:dashed;" ${canDip?'':'disabled'} onclick="window.__mm_card('ef')">🛡️ Use Emergency Fund ${canDip?'':'(not enough saved)'}</button>`;
     }
     else if(st.type==='invest'){
@@ -841,7 +907,7 @@ function startPlayer(isQuick){
         <button class="pbtn big" id="investGo" onclick="window.__mm_invest()" disabled>Choose an amount first</button>`;
     }
     else if(st.type==='emergency'){
-      html = `<div class="eyebrow alert">EMERGENCY</div><h1 class="disp lg red">${st.m.n===9?'HOSPITAL + MEDICINE BILL':'A SECOND EMERGENCY'}</h1><h1 class="disp xl red">${RUPEE(st.m.emergency)}</h1>
+      html = `<div class="eyebrow alert">EMERGENCY</div><h1 class="disp lg red">${emergencyTitle(st.m.n)}</h1><h1 class="disp xl red">${RUPEE(st.m.emergency)}</h1>
         <div class="psub">Due immediately. There’s no skipping this one.</div>
         <button class="pbtn big" onclick="window.__mm_emergency(${st.m.emergency})">See what happens →</button>`;
     }
@@ -859,11 +925,11 @@ function startPlayer(isQuick){
       html = `<div class="eyebrow">${label}</div><h1 class="disp lg gold">${RUPEE(total)}</h1>
         <div class="psub">Wallet ${RUPEE(state.wallet)} · Fund ${RUPEE(state.ef)} · Invested ${RUPEE(invTotal())}${state.loan?` · Loan owed ${RUPEE(state.loan)}`:''}</div>
         ${st.m.trial ? '' : (showMath ? mathBlock(st.m) : `<button class="pbtn ghost" onclick="window.__mm_toggleMath()">📐 How was this calculated?</button>`)}
-        <button class="pbtn big" onclick="window.__mm_next()">${nextLabel}</button>`;
+        <button class="pbtn big" onclick="${st.m.trial ? 'window.__mm_next()' : `window.__mm_recapNext(${JSON.stringify(st.m.n)})`}">${nextLabel}</button>`;
     }
     else if(st.type==='trialend'){
       html = `<div class="eyebrow gold">PRACTICE OVER</div><h1 class="disp lg">READY FOR THE REAL TWO YEARS?</h1>
-        <div class="psub">Your trial numbers don’t count. Everything resets to zero here, and the real 24 months begin.</div>
+        <div class="psub">Your trial numbers don’t count. Everything resets to zero here, and the real 24 months begin — as soon as your facilitator starts Month 1.</div>
         <button class="pbtn big" onclick="window.__mm_startReal()">Start the real simulation →</button>`;
     }
     else if(st.type==='finale'){
@@ -871,11 +937,11 @@ function startPlayer(isQuick){
       html = `<div class="eyebrow gold">${isQuick?'TASTER COMPLETE':'TWO YEARS COMPLETE'}</div><h1 class="disp xl gold">${RUPEE(total)}</h1>
         <div class="psub">Wallet ${RUPEE(state.wallet)} · Emergency Fund ${RUPEE(state.ef)} · Invested ${RUPEE(invTotal())}</div>
         <div class="badge-grid">${badges.map(b=>`<div class="badge ${b.earned?'earned':''}"><div class="ic">${b.icon}</div><div class="n">${b.name}</div><div class="d">${b.desc}</div></div>`).join('')}</div>
-        ${isQuick? `<div class="footer-note">This was just a taster — nothing here goes on a leaderboard.</div>` : `<div class="footer-note">Tell your facilitator this number — she’ll add it to the leaderboard on the big screen.</div>`}
+        ${isQuick? `<div class="footer-note">This was just a taster — nothing here goes on a leaderboard.</div>` : `<div class="footer-note">This score is already on the leaderboard — your facilitator will reveal it when she's ready.</div>`}
         <button class="pbtn ghost" onclick="window.__mm_restart()">Play again</button>`;
     }
     stage.innerHTML = html; stage.classList.remove('enter'); void stage.offsetWidth; stage.classList.add('enter');
-    if(st.type==='card') attachSwipe();
+    if(st.type==='card') attachSwipe(!!st.c.casual);
   }
 
   window.__mm_start = ()=>{
@@ -884,7 +950,12 @@ function startPlayer(isQuick){
     pnext();
   };
   window.__mm_next = pnext;
-  window.__mm_startReal = ()=>{ resetForRealGame(); pnext(); };
+  window.__mm_startReal = ()=>{ waitForGate(1, ()=>{ resetForRealGame(); pnext(); }); };
+  window.__mm_recapNext = (n)=>{
+    const last = monthsToPlay[monthsToPlay.length-1].n;
+    if(n>=last){ pnext(); return; }
+    waitForGate(n+1, pnext);
+  };
   window.__mm_income = (total, loanDue)=>{ applyDelta({wallet: total-(loanDue||0)}); if(loanDue){ state.loan=0; save(); } pnext(); };
   window.__mm_expense = (fixed)=>{ applyDelta({wallet:-fixed}); pnext(); };
   window.__mm_ef = (amt)=>{ applyDelta({wallet:-amt, ef:amt}); pnext(); };
@@ -956,16 +1027,16 @@ function startPlayer(isQuick){
     ];
   }
 
-  function attachSwipe(){
+  function attachSwipe(canSkip){
     const card = document.getElementById('swipeCard'); if(!card) return;
     let sx=0,dx=0,dragging=false;
     const hintL=document.getElementById('hintLeft'), hintR=document.getElementById('hintRight');
     function start(x){ dragging=true; sx=x; }
-    function move(x){ if(!dragging) return; dx=x-sx; card.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`; hintL.style.opacity=dx<-20?Math.min(1,-dx/100):0; hintR.style.opacity=dx>20?Math.min(1,dx/100):0; }
+    function move(x){ if(!dragging) return; dx=x-sx; card.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`; if(hintL) hintL.style.opacity=(canSkip&&dx<-20)?Math.min(1,-dx/100):0; if(hintR) hintR.style.opacity=dx>20?Math.min(1,dx/100):0; }
     function end(){ if(!dragging) return; dragging=false;
       if(dx>90){ card.style.transform='translateX(400px) rotate(18deg)'; card.style.transition='transform .3s ease'; setTimeout(()=>window.__mm_card(true),200); }
-      else if(dx<-90){ card.style.transform='translateX(-400px) rotate(-18deg)'; card.style.transition='transform .3s ease'; setTimeout(()=>window.__mm_card(false),200); }
-      else { card.style.transition='transform .25s ease'; card.style.transform=''; hintL.style.opacity=0; hintR.style.opacity=0; }
+      else if(canSkip && dx<-90){ card.style.transform='translateX(-400px) rotate(-18deg)'; card.style.transition='transform .3s ease'; setTimeout(()=>window.__mm_card(false),200); }
+      else { card.style.transition='transform .25s ease'; card.style.transform=''; if(hintL) hintL.style.opacity=0; if(hintR) hintR.style.opacity=0; }
       dx=0;
     }
     card.addEventListener('pointerdown', e=>{ card.style.transition=''; start(e.clientX); card.setPointerCapture(e.pointerId); });
@@ -984,6 +1055,7 @@ function renderMathSheet(){
   const m3 = MONTHS[2], m9 = MONTHS[8];
   root.innerHTML = `<div class="mathsheet"><div class="inner">
     <button class="print-btn" onclick="window.print()" style="float:right;">Print this page</button>
+    <a href="index.html" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8a6a17; text-decoration:none;">← Back to homepage</a>
     <h1>Money Matters — Rules & the Maths</h1>
     <p>Everything you need before you play: how the game works, and the exact arithmetic behind every number it shows. This is the page to read first.</p>
 
@@ -991,7 +1063,7 @@ function renderMathSheet(){
     <p><b>Two years, twenty-four months.</b> One person runs the projector (the facilitator); everyone else plays on her own phone, scanned in from a QR code. The screen tells the story out loud, month by month — income, expenses, decisions, the market. Your phone does the actual arithmetic and keeps your own private running total.</p>
     <p>Every month follows the same shape:</p>
     <div class="formula">Income arrives → Fixed costs are paid → 10% moves to your Emergency Fund → two decision cards → (some months) an investing round → the market moves → you check your recap</div>
-    <p>You always have three balances: your <b>Wallet</b> (day-to-day spending), your <b>Emergency Fund</b> (only for real emergencies — the game will force one on you, more than once), and your <b>Investments</b> (Gold, SIP and Stocks). At the very end, tell the facilitator your final score — she enters everyone's numbers and reveals the leaderboard on the big screen when she's ready.</p>
+    <p>You always have three balances: your <b>Wallet</b> (day-to-day spending), your <b>Emergency Fund</b> (only for real emergencies — the game will force one on you, more than once), and your <b>Investments</b> (Gold, SIP and Stocks). At the end, your final score is all three added together, minus any loan you're still carrying.</p>
 
     <h2>1. Monthly income</h2>
     <div class="formula">Income = ₹2,500 (pocket money) + ₹2,500 (groceries) + that month's work income</div>
@@ -1006,21 +1078,20 @@ function renderMathSheet(){
     <div class="example"><p><b>Month 3:</b> 10% × ₹20,000 = <b>₹2,000</b>, moved automatically before anything else is spent.</p></div>
 
     <h2>4. A decision card</h2>
-    <div class="formula">Pay → Wallet −= cost &nbsp;|&nbsp; Skip → no change &nbsp;|&nbsp; Use Emergency Fund → Fund −= cost</div>
-    <div class="example"><p>A ₹1,200 card, paid: Wallet decreases by ₹1,200. Skipped: nothing changes. Paid from the fund instead: the Emergency Fund decreases by ₹1,200, and the Wallet is untouched.</p></div>
+    <div class="formula">Pay → Wallet −= cost &nbsp;|&nbsp; Use Emergency Fund → Fund −= cost</div>
+    <div class="example"><p>Most decision cards are real — you either pay for it from your Wallet, or cover it from your Emergency Fund. A small few (the low-stakes, social ones) also let you Skip for free. You won't know which is which until the card is in front of you.</p></div>
 
     <h2>5. Investment growth — every month, automatically</h2>
     <div class="formula">New balance = Old balance × (1 + that month's % change)</div>
-    <div class="example"><p><b>Month 9 example (the first real dip):</b> if Stocks held ₹1,000 going into the month and the market moves −7% that month, the new balance is ₹1,000 × (1 − 0.07) = <b>₹930</b>. Gold and SIP are calculated the same way, with their own (usually smaller, steadier) percentage.</p></div>
+    <div class="example"><p><b>Example:</b> if Stocks held ₹1,000 going into a month and the market moves −7% that month, the new balance is ₹1,000 × (1 − 0.07) = <b>₹930</b>. Gold and SIP are calculated the same way, with their own (usually smaller, steadier) percentage.</p></div>
     <p>This happens every month to whatever is currently invested — even in months with no new investing round.</p>
 
-    <h2>6. The Emergency (Months 9 and 21)</h2>
+    <h2>6. The Emergency</h2>
     <div class="formula">If Emergency Fund ≥ bill → Fund −= bill, no loan. If Emergency Fund &lt; bill → shortfall = bill − Fund; Fund → 0; Loan owed = shortfall × 1.20</div>
-    <div class="example"><p><b>Month 9:</b> the bill is ₹7,000. If your fund has only ₹4,000 saved, the shortfall is ₹3,000, and the loan owed next month is ₹3,000 × 1.20 = <b>₹3,600</b> — an extra ₹600 for not having enough saved. That loan is automatically deducted from your Month 10 income.</p></div>
+    <div class="example"><p>More than once across the two years, an emergency will land on you without warning — you won't know when. <b>Example:</b> the bill is ₹7,000. If your fund has only ₹4,000 saved, the shortfall is ₹3,000, and the loan owed next month is ₹3,000 × 1.20 = <b>₹3,600</b> — an extra ₹600 for not having enough saved. That loan is automatically deducted from the following month's income.</p></div>
 
     <h2>7. Final score</h2>
     <div class="formula">Final score = Wallet + Emergency Fund + Investments − any outstanding loan</div>
-    <p>This is the number that goes on the leaderboard when the facilitator chooses to reveal it — not before.</p>
 
     <p style="margin-top:30px; font-size:12.5px; opacity:.7;">Money Matters — Simulation · GamesForEd × Active Canvas</p>
   </div></div>`;
