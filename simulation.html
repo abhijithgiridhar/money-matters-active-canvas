@@ -367,7 +367,7 @@ function fbWatchLeaderboard(onData, onError){
 }
 
 /* ---------------- routing ---------------- */
-let hScenes = [], hi = 0, hTimerHandle=null, hTickHandle=null, hLbUnsub=null;
+let hScenes = [], hi = 0, hTimerHandle=null, hTickHandle=null, hLbUnsub=null, hJoinUnsub=null;
 const qs = new URLSearchParams(location.search);
 let ROLE = qs.get('mode'); // 'host' | 'player' | 'quick' | null
 const root = document.getElementById('root');
@@ -662,7 +662,6 @@ function hrender(){
 }
 function renderQR(box,url){ if(!box||typeof qrcode==='undefined') return; const qr=qrcode(0,'M'); qr.addData(url); qr.make(); box.innerHTML=qr.createSvgTag({cellSize:5,margin:2}); }
 
-let hJoinUnsub = null;
 function startJoinLobby(){
   stopJoinLobby();
   hJoinUnsub = fbWatchPlayers(
