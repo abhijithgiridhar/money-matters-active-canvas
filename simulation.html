@@ -94,7 +94,7 @@
   .final-card p{ margin:0; font-size:14.5px; color:var(--paper-dim); line-height:1.5; }
   .qrbox{ background:var(--paper); padding:16px; border-radius:8px; display:inline-block; line-height:0; }
   .qrbox svg{ width:200px; height:200px; display:block; }
-  .lb-list{ width:100%; max-width:600px; display:flex; flex-direction:column; gap:8px; text-align:left; }
+  .lb-list{ width:100%; max-width:600px; display:flex; flex-direction:column; gap:8px; text-align:left; max-height:56vh; overflow-y:auto; padding-right:6px; }
   .lb-row{ display:flex; align-items:center; gap:14px; border:1px solid var(--line); background:var(--ink-2); padding:11px 16px; font-family:'IBM Plex Mono',monospace; opacity:0; animation:rowIn .35s ease forwards; }
   .lb-row .rank{ width:28px; color:var(--gold); font-weight:600; }
   .lb-row .nm{ flex:1; color:var(--paper); }
@@ -371,7 +371,7 @@ function fbWatchPlayers(onData, onError){
 }
 function fbWatchLeaderboard(onData, onError){
   if(!fdb) return null;
-  return fdb.collection('leaderboard').orderBy('finalScore','desc').limit(20)
+  return fdb.collection('leaderboard').orderBy('finalScore','desc').limit(40)
     .onSnapshot(snap=>onData(snap.docs.map(d=>d.data())), onError);
 }
 
