@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --ink:#0b0f0d; --ink-2:#141a17; --ink-3:#1c2420;
@@ -326,10 +328,43 @@ const STRATS = {
   growth:{label:'Growth', desc:'Mostly Stocks — higher risk, higher swing', split:{gold:0.1, sip:0.3, stocks:0.6}},
 };
 
-/* ---------------- standalone static site: no shared backend ----------------
-   Market movements are fixed defaults (edit defaultMarket() and redeploy to change them).
-   The leaderboard is facilitator-entered on the host screen — nothing syncs across phones,
-   so this page needs no login and works for anyone with the link. */
+/* ---------------- shared live backend (Firebase) ----------------
+   Market movements stay fixed defaults (edit defaultMarket() and redeploy to change them) —
+   but the join-wall and the leaderboard are real, live, and shared across every phone and
+   the projector via Firestore. No login needed: this page still works for anyone with the
+   link, the database just quietly syncs in the background. */
+const firebaseConfig = {
+  apiKey: "AIzaSyASBnzCRkFWdr6XUIWNwtRyqi5s92Xul8Y",
+  authDomain: "money-matters-c26a1.firebaseapp.com",
+  projectId: "money-matters-c26a1",
+  storageBucket: "money-matters-c26a1.firebasestorage.app",
+  messagingSenderId: "993374323784",
+  appId: "1:993374323784:web:c1a91315f0b0907d18847d"
+};
+let fdb = null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  fdb = firebase.firestore();
+}catch(e){ fdb = null; }
+
+function fbWritePlayer(id, name){
+  if(!fdb) return;
+  fdb.collection('players').doc(id).set({ name, joinedAt: Date.now() }).catch(()=>{});
+}
+function fbWriteScore(id, name, finalScore){
+  if(!fdb) return;
+  fdb.collection('leaderboard').doc(id).set({ name, finalScore, updatedAt: Date.now() }).catch(()=>{});
+}
+function fbWatchPlayers(onData, onError){
+  if(!fdb) return null;
+  return fdb.collection('players').orderBy('joinedAt','asc').limit(80)
+    .onSnapshot(snap=>onData(snap.docs.map(d=>d.data())), onError);
+}
+function fbWatchLeaderboard(onData, onError){
+  if(!fdb) return null;
+  return fdb.collection('leaderboard').orderBy('finalScore','desc').limit(20)
+    .onSnapshot(snap=>onData(snap.docs.map(d=>d.data())), onError);
+}
 
 /* ---------------- routing ---------------- */
 let hScenes = [], hi = 0, hTimerHandle=null, hTickHandle=null, hLbUnsub=null;
@@ -537,35 +572,30 @@ function hloc(){ const s=hScenes[hi]; document.getElementById('hLoc').innerHTML 
 function hclearTimer(){ if(hTimerHandle){ clearTimeout(hTimerHandle); hTimerHandle=null; } if(hTickHandle){ clearInterval(hTickHandle); hTickHandle=null; } }
 
 let lbOpen = false;
-let lbEntries = [];
-try{ lbEntries = JSON.parse(localStorage.getItem('mm_lb_entries')||'[]'); }catch(e){ lbEntries = []; }
-function saveLbEntries(){ try{ localStorage.setItem('mm_lb_entries', JSON.stringify(lbEntries)); }catch(e){} }
+let lbLiveUnsub = null;
 
 function toggleLeaderboardOverlay(){
   const el = document.getElementById('lbOverlay');
   lbOpen = !lbOpen;
-  if(lbOpen){ el.style.display = 'flex'; renderHostLeaderboard(); }
-  else { el.style.display = 'none'; }
-}
-function renderHostLeaderboard(){
-  const el = document.getElementById('lbOverlay');
-  const sorted = [...lbEntries].sort((a,b)=>b.score-a.score);
-  el.innerHTML = `<div class="eyebrow gold">LEADERBOARD</div><div class="display mid">FINAL STANDINGS</div>
-    <div class="lb-list" id="lbList">${sorted.length? sorted.map((r,idx)=>`<div class="lb-row ${idx===0?'top1':''}"><span class="rank">#${idx+1}</span><span class="nm">${r.name}</span><span class="sc">${RUPEE(r.score)}</span></div>`).join('') : '<div class="sub">No scores entered yet — add them below as girls tell you their final number.</div>'}</div>
-    <div style="display:flex; gap:8px;">
-      <input id="lbName" placeholder="Name" style="font-family:'IBM Plex Mono',monospace; background:var(--ink-2); border:1px solid var(--line); color:var(--paper); padding:10px 12px; border-radius:4px; width:160px;">
-      <input id="lbScore" type="number" placeholder="Final score (₹)" style="font-family:'IBM Plex Mono',monospace; background:var(--ink-2); border:1px solid var(--line); color:var(--paper); padding:10px 12px; border-radius:4px; width:160px;">
-      <button class="btn" id="lbAddBtn">Add</button>
-    </div>
-    <button class="btn ghost" id="lbCloseBtn">Close</button>`;
-  document.getElementById('lbCloseBtn').onclick = (e)=>{ e.stopPropagation(); toggleLeaderboardOverlay(); };
-  document.getElementById('lbAddBtn').onclick = (e)=>{
-    e.stopPropagation();
-    const name = document.getElementById('lbName').value.trim();
-    const score = parseFloat(document.getElementById('lbScore').value);
-    if(!name || isNaN(score)) return;
-    lbEntries.push({name, score}); saveLbEntries(); renderHostLeaderboard();
-  };
+  if(lbOpen){
+    el.style.display = 'flex';
+    el.innerHTML = `<div class="eyebrow gold">LEADERBOARD</div><div class="display mid">LIVE STANDINGS</div>
+      <div class="lb-list" id="lbList"><div class="sub">Connecting…</div></div>
+      <button class="btn ghost" id="lbCloseBtn">Close</button>`;
+    document.getElementById('lbCloseBtn').onclick = (e)=>{ e.stopPropagation(); toggleLeaderboardOverlay(); };
+    if(lbLiveUnsub) lbLiveUnsub();
+    lbLiveUnsub = fbWatchLeaderboard(
+      rows=>{
+        const list = document.getElementById('lbList'); if(!list) return;
+        list.innerHTML = rows.length ? rows.map((r,idx)=>`<div class="lb-row ${idx===0?'top1':''}" style="animation-delay:${idx*0.05}s"><span class="rank">#${idx+1}</span><span class="nm">${(r.name||'Player').slice(0,24)}</span><span class="sc">${RUPEE(r.finalScore||0)}</span></div>`).join('')
+          : '<div class="sub">No scores yet — they’ll appear here the moment someone finishes.</div>';
+      },
+      ()=>{ const list=document.getElementById('lbList'); if(list) list.innerHTML='<div class="sub">Leaderboard unavailable right now — check the connection.</div>'; }
+    );
+  } else {
+    el.style.display = 'none';
+    if(lbLiveUnsub){ lbLiveUnsub(); lbLiveUnsub=null; }
+  }
 }
 
 function hrender(){
@@ -577,7 +607,7 @@ function hrender(){
   let html='';
   if(s.type==='title'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display huge gold">${s.title}</div><div class="sub">${s.sub}</div>`; }
   else if(s.type==='rules'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="ledger">${s.rows.map(r=>`<div class="lrow"><span class="lb">${r[0]}</span><span class="v">${r[1]}</span></div>`).join('')}</div>`; }
-  else if(s.type==='qr'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid gold">${s.title}</div><div class="qrbox"><div id="qrTarget"></div></div><div class="sub">Once you’ve scanned in and entered your name, wait here — we’ll start together.</div>`; }
+  else if(s.type==='qr'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid gold">${s.title}</div><div class="qrbox"><div id="qrTarget"></div></div><div class="lb-list" id="joinList" style="max-width:560px;"><div class="sub">Waiting for players to join…</div></div>`; }
   else if(s.type==='rules2'||s.type==='rules3'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display big gold">${s.title}</div><div class="sub">${s.sub}</div>`; }
   else if(s.type==='month'){ html=`<div class="eyebrow">CHAPTER</div><div class="display huge">${s.title}</div>${s.sub?`<div class="sub">${s.sub}</div>`:''}`; }
   else if(s.type==='income'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="ledger">
@@ -615,7 +645,7 @@ function hrender(){
   else if(s.type==='thanks'){ html=`<div class="eyebrow gold">${s.eyebrow}</div><div class="display huge">${s.title}</div><div class="sub">${s.sub}</div>`; }
 
   el.classList.remove('enter'); el.innerHTML = html; void el.offsetWidth; el.classList.add('enter');
-  if(s.type==='qr'){ renderQR(document.getElementById('qrTarget'), s.url); }
+  if(s.type==='qr'){ renderQR(document.getElementById('qrTarget'), s.url); startJoinLobby(); } else { stopJoinLobby(); }
 
   document.getElementById('stage').classList.remove('shake');
   if(s.shake){ void document.getElementById('stage').offsetWidth; document.getElementById('stage').classList.add('shake'); }
@@ -631,6 +661,23 @@ function hrender(){
   }
 }
 function renderQR(box,url){ if(!box||typeof qrcode==='undefined') return; const qr=qrcode(0,'M'); qr.addData(url); qr.make(); box.innerHTML=qr.createSvgTag({cellSize:5,margin:2}); }
+
+let hJoinUnsub = null;
+function startJoinLobby(){
+  stopJoinLobby();
+  hJoinUnsub = fbWatchPlayers(
+    rows=>{
+      const el = document.getElementById('joinList'); if(!el) return;
+      if(!rows.length){ el.innerHTML = '<div class="sub">Waiting for players to join…</div>'; return; }
+      el.innerHTML = `<div class="eyebrow good" style="justify-content:flex-start;">${rows.length} JOINED</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:560px;">
+          ${rows.map((r,idx)=>`<span class="topt" style="padding:7px 14px; font-size:13px; animation:rowIn .3s ease forwards; opacity:0; animation-delay:${Math.min(idx*0.04,1)}s;">${(r.name||'Player').slice(0,20)}</span>`).join('')}
+        </div>`;
+    },
+    ()=>{ const el=document.getElementById('joinList'); if(el) el.innerHTML='<div class="sub">Live join list unavailable right now — check the connection.</div>'; }
+  );
+}
+function stopJoinLobby(){ if(hJoinUnsub){ hJoinUnsub(); hJoinUnsub=null; } }
 
 /* =====================================================================
    PLAYER (phone) + QUICK TASTER
@@ -805,6 +852,7 @@ function startPlayer(isQuick){
     }
     else if(st.type==='recap'){
       const total = state.wallet+state.ef+invTotal()-state.loan;
+      if(!st.m.trial && !isQuick){ fbWriteScore(playerId, state.name||'Player', total); }
       const label = st.m.trial ? 'TRIAL ROUND '+st.m.n.slice(1)+' DONE' : 'MONTH '+st.m.n+' CLOSED';
       let nextLabel;
       if(st.m.trial){ nextLabel = st.m.n==='T1' ? 'Continue to Trial Round 2 →' : 'Continue →'; }
@@ -833,6 +881,7 @@ function startPlayer(isQuick){
 
   window.__mm_start = ()=>{
     state.name = document.getElementById('nameInput').value.trim(); save();
+    if(!isQuick){ fbWritePlayer(playerId, state.name||'Player'); }
     pnext();
   };
   window.__mm_next = pnext;
