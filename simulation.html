@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Money Matters — Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+  :root{
+    --ink:#0b0f0d; --ink-2:#141a17; --ink-3:#1c2420;
+    --paper:#f1ecdd; --paper-dim:#a9a291;
+    --gold:#c9a227; --gold-bright:#e8c65c;
+    --red:#c0392b; --red-bright:#e8564a;
+    --green:#4c9a6a; --green-bright:#6fc28f;
+    --line:#2a332e;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{ margin:0; background:var(--ink); color:var(--paper); font-family:'Spectral',Georgia,serif; -webkit-font-smoothing:antialiased; }
+
+  /* ============ CHOOSER ============ */
+  .chooser{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:34px; text-align:center; padding:40px 20px; }
+  .chooser h1{ font-family:'Anton',sans-serif; font-weight:400; font-size:clamp(38px,7vw,64px); color:var(--gold-bright); margin:0; letter-spacing:.01em; }
+  .chooser .tag{ font-family:'IBM Plex Mono',monospace; letter-spacing:.2em; text-transform:uppercase; color:var(--paper-dim); font-size:13px; }
+  .choice-grid{ display:flex; gap:20px; flex-wrap:wrap; justify-content:center; max-width:900px; }
+  .choice-card{ width:230px; border:1px solid var(--line); background:var(--ink-2); padding:26px 20px; cursor:pointer; text-align:left; }
+  .choice-card:hover{ border-color:var(--gold); }
+  .choice-card .ic{ font-size:28px; }
+  .choice-card .n{ font-family:'Anton',sans-serif; font-size:19px; margin:10px 0 6px; color:var(--paper); }
+  .choice-card .d{ font-size:13.5px; color:var(--paper-dim); line-height:1.4; }
+
+  /* ============ HOST (projector) ============ */
+  body.mode-host{ overflow:hidden; cursor:default; }
+  .stage{ position:relative; width:100%; height:100vh; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse 120% 90% at 50% 8%, rgba(201,162,39,.07), transparent 60%), radial-gradient(ellipse 140% 100% at 50% 100%, rgba(0,0,0,.55), transparent 55%), var(--ink); }
+  .stage::before{ content:""; position:absolute; inset:0; background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 3px); pointer-events:none; mix-blend-mode:overlay; z-index:1; }
+  .frame{ position:absolute; inset:22px; border:1px solid var(--line); pointer-events:none; z-index:2; }
+  .topcorner{ position:absolute; top:34px; left:44px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--paper-dim); z-index:5; }
+  .topcorner b{ color:var(--gold); }
+  .topright{ position:absolute; top:34px; right:44px; display:flex; gap:10px; z-index:5; }
+  .icon-btn{ width:32px; height:32px; border:1px solid var(--line); background:transparent; color:var(--paper-dim); cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .icon-btn:hover{ border-color:var(--gold); color:var(--gold-bright); }
+  .scene-wrap{ width:min(1040px,86vw); }
+  .scene{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:22px; opacity:0; transform:translateY(18px) scale(.985); }
+  .scene.enter{ animation: sceneIn .5s cubic-bezier(.2,.8,.3,1) forwards; }
+  @keyframes sceneIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:15px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); }
+  .eyebrow.alert{ color:var(--red-bright); } .eyebrow.good{ color:var(--green-bright); }
+  .display{ font-family:'Anton',sans-serif; font-weight:400; line-height:.98; text-wrap:balance; color:var(--paper); font-variant-numeric:tabular-nums; }
+  .display.huge{ font-size:clamp(56px,9vw,132px); } .display.big{ font-size:clamp(40px,5.6vw,80px); } .display.mid{ font-size:clamp(27px,3.6vw,46px); }
+  .display.gold{ color:var(--gold-bright); } .display.red{ color:var(--red-bright); } .display.green{ color:var(--green-bright); }
+  .narrative{ font-style:italic; font-size:clamp(19px,2.1vw,27px); line-height:1.5; max-width:760px; }
+  .sub{ font-size:clamp(15px,1.4vw,18px); color:var(--paper-dim); max-width:640px; line-height:1.55; }
+  .ledger{ width:100%; max-width:560px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+  .lrow{ display:flex; justify-content:space-between; gap:12px; padding:8px 2px; border-bottom:1px dashed var(--line); font-size:16px; opacity:0; animation: rowIn .4s ease forwards; }
+  .lrow:last-child{ border-bottom:none; }
+  .lrow .lb{ color:var(--paper-dim); text-align:left; } .lrow .v{ color:var(--paper); font-weight:500; } .lrow .v.neg{ color:var(--red-bright); }
+  .lrow.total{ border-top:1px solid var(--gold); border-bottom:none; margin-top:4px; padding-top:11px; }
+  .lrow.total .lb{ color:var(--gold); text-transform:uppercase; letter-spacing:.08em; font-size:12px; } .lrow.total .v{ color:var(--gold-bright); font-size:20px; font-weight:600; }
+  @keyframes rowIn{ from{opacity:0; transform:translateX(-8px);} to{opacity:1; transform:translateX(0);} }
+  .ticker{ display:flex; gap:34px; flex-wrap:wrap; justify-content:center; font-family:'IBM Plex Mono',monospace; }
+  .titem{ display:flex; flex-direction:column; align-items:center; gap:6px; min-width:140px; opacity:0; transform:translateY(10px); animation:tIn .5s ease forwards; }
+  @keyframes tIn{ to{opacity:1; transform:translateY(0);} }
+  .titem .n{ font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--paper-dim); }
+  .titem .m{ font-size:clamp(24px,3vw,36px); font-family:'Anton',sans-serif; }
+  .card-face{ border:1px solid var(--line); background:var(--ink-2); padding:24px 30px; max-width:640px; position:relative; opacity:0; transform:translateY(22px) rotate(-1.2deg) scale(.97); animation: cardIn .55s cubic-bezier(.2,.85,.3,1) forwards; }
+  @keyframes cardIn{ to{ opacity:1; transform:translateY(0) rotate(0) scale(1); } }
+  .card-face::before{ content:""; position:absolute; top:0; left:22px; right:22px; height:2px; background:var(--gold); opacity:.7; }
+  .bar-wrap{ width:100%; max-width:480px; height:7px; background:var(--ink-3); border:1px solid var(--line); overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--green-bright); width:100%; }
+  .bar-fill.run{ transition:width linear, background-color .4s ease; }
+  .timer-label{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.1em; color:var(--paper-dim); text-transform:uppercase; }
+  .alert-glow{ animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ box-shadow: inset 0 0 0 2px rgba(192,57,43,0), 0 0 60px rgba(192,57,43,0);} 50%{ box-shadow: inset 0 0 0 2px rgba(192,57,43,.55), 0 0 90px rgba(192,57,43,.35);} }
+  .shake{ animation: shakeKf .5s cubic-bezier(.36,.07,.19,.97) both; }
+  @keyframes shakeKf{ 10%,90%{transform:translate3d(-1px,0,0);} 20%,80%{transform:translate3d(2px,0,0);} 30%,50%,70%{transform:translate3d(-5px,0,0);} 40%,60%{transform:translate3d(5px,0,0);} }
+  .flash{ position:fixed; inset:0; pointer-events:none; z-index:30; opacity:0; }
+  .flash.hit{ animation: flashKf .6s ease-out; }
+  .flash.good{ background:var(--gold-bright); } .flash.bad{ background:var(--red); }
+  @keyframes flashKf{ 0%{opacity:.55;} 100%{opacity:0;} }
+  .progress-dots{ position:absolute; bottom:26px; left:50%; transform:translateX(-50%); display:flex; gap:4px; z-index:3; flex-wrap:wrap; max-width:70vw; justify-content:center; }
+  .dot{ width:4px; height:4px; border-radius:50%; background:var(--line); } .dot.active{ background:var(--gold); }
+  .hint{ position:absolute; bottom:34px; right:44px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.1em; color:var(--paper-dim); text-transform:uppercase; opacity:.55; z-index:3; }
+  .notes{ position:fixed; left:0; right:0; bottom:0; background:rgba(0,0,0,.92); border-top:1px solid var(--gold); color:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:13.5px; line-height:1.6; padding:16px 44px; max-height:30vh; overflow:auto; display:none; z-index:40; }
+  .notes.show{ display:block; } .notes b{ color:var(--gold-bright); }
+  .final-grid{ display:grid; grid-template-columns:repeat(2,minmax(220px,1fr)); gap:16px; width:100%; max-width:760px; text-align:left; }
+  .final-card{ border:1px solid var(--line); background:var(--ink-2); padding:18px 20px; }
+  .final-card .fname{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:7px; }
+  .final-card p{ margin:0; font-size:14.5px; color:var(--paper-dim); line-height:1.5; }
+  .qrbox{ background:var(--paper); padding:16px; border-radius:8px; display:inline-block; line-height:0; }
+  .qrbox svg{ width:200px; height:200px; display:block; }
+  .lb-list{ width:100%; max-width:600px; display:flex; flex-direction:column; gap:8px; text-align:left; }
+  .lb-row{ display:flex; align-items:center; gap:14px; border:1px solid var(--line); background:var(--ink-2); padding:11px 16px; font-family:'IBM Plex Mono',monospace; opacity:0; animation:rowIn .35s ease forwards; }
+  .lb-row .rank{ width:28px; color:var(--gold); font-weight:600; }
+  .lb-row .nm{ flex:1; color:var(--paper); }
+  .lb-row .sc{ color:var(--gold-bright); font-weight:600; }
+  .lb-row.top1{ border-color:var(--gold); background:rgba(201,162,39,.08); }
+  .setup-wrap{ width:min(1100px,92vw); max-height:88vh; overflow:auto; padding:20px 0; }
+  .setup-wrap h1{ font-family:'Anton',sans-serif; font-weight:400; color:var(--gold-bright); font-size:32px; margin:0 0 6px; }
+  .setup-tbl{ width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:13px; margin-top:16px; }
+  .setup-tbl th,.setup-tbl td{ border:1px solid var(--line); padding:7px 8px; text-align:center; }
+  .setup-tbl th{ color:var(--gold); text-transform:uppercase; font-size:11px; letter-spacing:.06em; }
+  .setup-tbl input{ width:56px; background:var(--ink-2); border:1px solid var(--line); color:var(--paper); font-family:'IBM Plex Mono',monospace; padding:4px; text-align:center; border-radius:3px; }
+  .setup-tbl td.m{ color:var(--paper-dim); }
+  .setup-actions{ display:flex; gap:12px; margin-top:20px; position:sticky; bottom:0; background:var(--ink); padding:12px 0; }
+  .btn{ font-family:'IBM Plex Mono',monospace; font-weight:600; letter-spacing:.06em; text-transform:uppercase; border:1px solid var(--gold); background:var(--gold); color:var(--ink); padding:13px 22px; border-radius:3px; cursor:pointer; font-size:13px; }
+  .btn.ghost{ background:transparent; color:var(--paper); border-color:var(--line); }
+  .btn:active{ transform:scale(.98); }
+
+  /* ============ PLAYER (phone) ============ */
+  body.mode-player, body.mode-quick{ display:flex; justify-content:center; }
+  .app{ width:100%; max-width:480px; min-height:100vh; position:relative; display:flex; flex-direction:column; }
+  .quickband{ background:var(--gold); color:var(--ink); text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; padding:6px; font-weight:700; }
+  .topbar{ position:sticky; top:0; z-index:10; padding:10px 16px 8px; background:linear-gradient(180deg, var(--ink) 70%, rgba(11,15,13,0)); display:flex; flex-direction:column; gap:8px; }
+  .topbar.hidden{ display:none; }
+  .tb-row{ display:flex; align-items:center; justify-content:space-between; }
+  .brand{ font-family:'Anton',sans-serif; font-size:13px; letter-spacing:.04em; color:var(--paper-dim); }
+  .loc{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.1em; color:var(--gold); text-transform:uppercase; }
+  .stats{ display:flex; gap:8px; }
+  .stat{ flex:1; border:1px solid var(--line); background:var(--ink-2); padding:7px 9px; position:relative; }
+  .stat .l{ font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--paper-dim); }
+  .stat .v{ font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .stat .d{ position:absolute; right:6px; top:-9px; font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:600; padding:1px 5px; border-radius:3px; opacity:0; }
+  .stat .d.show{ animation: pop 1.6s ease forwards; }
+  .stat .d.pos{ background:rgba(76,154,106,.2); color:var(--green-bright); } .stat .d.neg{ background:rgba(192,57,43,.2); color:var(--red-bright); }
+  @keyframes pop{ 0%{opacity:0; transform:translateY(3px);} 15%{opacity:1; transform:translateY(0);} 75%{opacity:1;} 100%{opacity:0; transform:translateY(-6px);} }
+  .segs{ display:flex; gap:2px; }
+  .seg{ flex:1; height:3px; background:var(--line); } .seg.done{ background:var(--gold); } .seg.now{ background:var(--gold-bright); }
+  .pstage{ flex:1; display:flex; flex-direction:column; justify-content:center; padding:20px 20px 28px; gap:16px; text-align:center; }
+  .pstage.enter{ animation: stageIn .42s cubic-bezier(.2,.8,.3,1); }
+  @keyframes stageIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+  h1.disp{ font-family:'Anton',sans-serif; font-weight:400; line-height:1; margin:0; text-wrap:balance; }
+  .disp.xl{ font-size:clamp(34px,10vw,50px); } .disp.lg{ font-size:clamp(26px,7.5vw,36px); }
+  .disp.gold{ color:var(--gold-bright); } .disp.red{ color:var(--red-bright); }
+  .psub{ font-size:14.5px; color:var(--paper-dim); line-height:1.5; }
+  .pnarr{ font-style:italic; font-size:17px; line-height:1.5; }
+  .pledger{ width:100%; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-align:left; }
+  .plrow{ display:flex; justify-content:space-between; padding:6px 2px; border-bottom:1px dashed var(--line); font-size:13.5px; opacity:0; animation:rowIn .35s ease forwards; }
+  .plrow.total{ border-top:1px solid var(--gold); border-bottom:none; margin-top:2px; padding-top:9px; }
+  .plrow.total .lb{ color:var(--gold); text-transform:uppercase; font-size:10.5px; letter-spacing:.08em; } .plrow.total .v{ color:var(--gold-bright); font-size:16.5px; font-weight:600; }
+  .pbtn{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; border:1px solid var(--gold); background:var(--gold); color:var(--ink); padding:14px 18px; border-radius:3px; cursor:pointer; width:100%; }
+  .pbtn.ghost{ background:transparent; color:var(--paper); border-color:var(--line); }
+  .pbtn.big{ padding:17px; font-size:14.5px; } .pbtn:active{ transform:scale(.98); } .pbtn:disabled{ opacity:.35; }
+  .prow2{ display:flex; gap:9px; } .prow2 .pbtn{ flex:1; }
+  .card-stack{ position:relative; height:190px; margin:2px 0; }
+  .swipe-card{ position:absolute; inset:0; border:1px solid var(--line); background:var(--ink-2); border-radius:10px; padding:20px; display:flex; align-items:center; justify-content:center; touch-action:pan-y; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .swipe-card .txt{ font-style:italic; font-size:16px; line-height:1.45; }
+  .swipe-hint{ position:absolute; top:10px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:3px; opacity:0; }
+  .swipe-hint.left{ left:10px; color:var(--red-bright); border:1px solid var(--red-bright); } .swipe-hint.right{ right:10px; color:var(--green-bright); border:1px solid var(--green-bright); }
+  .chiprow{ display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+  .chip{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; border:1px solid var(--line); background:var(--ink-2); color:var(--paper); padding:9px 13px; border-radius:20px; cursor:pointer; }
+  .chip.active{ border-color:var(--gold); color:var(--gold-bright); background:rgba(201,162,39,.12); }
+  .strategy{ display:flex; flex-direction:column; gap:7px; text-align:left; }
+  .strat-opt{ border:1px solid var(--line); background:var(--ink-2); padding:11px 13px; border-radius:6px; cursor:pointer; }
+  .strat-opt.active{ border-color:var(--gold); }
+  .strat-opt .name{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin-bottom:2px; }
+  .strat-opt .desc{ font-size:12.5px; color:var(--paper-dim); }
+  .badge-grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; text-align:left; }
+  .badge{ border:1px solid var(--line); background:var(--ink-2); padding:11px; border-radius:8px; opacity:.35; }
+  .badge.earned{ opacity:1; border-color:var(--gold); }
+  .badge .ic{ font-size:20px; } .badge .n{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; margin-top:3px; color:var(--gold-bright); }
+  .badge .d{ font-size:11.5px; color:var(--paper-dim); margin-top:2px; }
+  input.nametxt{ width:100%; background:var(--ink-2); border:1px solid var(--line); color:var(--paper); font-family:'Spectral',Georgia,serif; font-size:16px; padding:12px 13px; border-radius:4px; text-align:center; }
+  .footer-note{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--paper-dim); opacity:.6; letter-spacing:.05em; }
+  .mathbox{ text-align:left; border:1px solid var(--line); background:var(--ink-2); padding:12px 14px; border-radius:6px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.7; color:var(--paper-dim); }
+  .mathbox b{ color:var(--gold-bright); }
+  .rankpill{ display:inline-block; border:1px solid var(--gold); color:var(--gold-bright); padding:5px 12px; border-radius:20px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.06em; }
+
+  /* ============ TRIVIA (host) ============ */
+  .trivia-opts{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; font-family:'IBM Plex Mono',monospace; }
+  .topt{ border:1px solid var(--line); background:var(--ink-2); padding:13px 26px; font-size:15px; letter-spacing:.06em; text-transform:uppercase; }
+
+  /* ============ MATH SHEET (print) ============ */
+  .mathsheet{ background:#f1ecdd; color:#211d15; min-height:100vh; padding:40px 30px; }
+  .mathsheet .inner{ max-width:760px; margin:0 auto; }
+  .mathsheet h1{ font-family:'Anton',sans-serif; font-size:32px; margin:0 0 6px; }
+  .mathsheet h2{ font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:#8a6a17; margin:28px 0 8px; }
+  .mathsheet .formula{ font-family:'IBM Plex Mono',monospace; background:#e9e2cd; border:1px solid #c9c2ac; padding:12px 14px; border-radius:6px; font-size:14px; margin:8px 0; }
+  .mathsheet p{ font-size:14.5px; line-height:1.6; color:#4a4436; }
+  .mathsheet .example{ border-left:3px solid #8a6a17; padding-left:14px; margin:10px 0; }
+  .print-btn{ font-family:'IBM Plex Mono',monospace; font-weight:700; text-transform:uppercase; letter-spacing:.06em; background:#211d15; color:#f1ecdd; border:none; padding:12px 22px; border-radius:4px; cursor:pointer; }
+  @media print{ .print-btn{ display:none; } }
+
+  @media (prefers-reduced-motion:reduce){ .scene.enter,.card-face,.lrow,.titem,.flash.hit,.shake,.pstage.enter,.plrow{ animation:none !important; } .bar-fill.run{ transition:none; } }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script>
+/* =====================================================================
+   MONEY MATTERS — SIMULATION
+   Two years, twenty-four months. One artifact, three roles:
+   host (projector), player (phone via QR), quick (solo taster).
+   ===================================================================== */
+const RUPEE = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const num = s => typeof s==='number' ? s : Number(String(s).replace(/,/g,''));
+const SUPPORT = 5000;
+
+/* ---------------- shared month data (2 years, India-flavoured, no family framing) ----------------
+   Rebalanced so the year has real bite: Year 1 keeps subsidised hostel-level fixed costs, but
+   Year 2 (independent living for the internship/job) carries a real rent jump — the raise you
+   earn barely outruns it, on purpose. */
+const MONTHS = [
+ {n:1, job:14000, fixed:1800,
+   cards:[{t:'Your phone screen cracks badly — you can barely read messages. A repair shop near college can fix it today.', c:900, tag:'necessity'},
+          {t:'A classmate is turning 19 this weekend. The friend group is chipping in for a gift.', c:600, tag:'social'}]},
+ {n:2, job:13000, fixed:2400, fixedNote:'includes a ₹600 late course-registration fee',
+   cards:[{t:'New semester — you need fresh notebooks and stationery for every subject.', c:500, tag:'necessity'},
+          {t:'A 50%-off sale on a dress you’ve wanted for weeks ends tonight.', c:1100, tag:'discretionary'}]},
+ {n:3, job:15000, fixed:1800, flavor:'First investing round — your Emergency Fund already has two months in it.',
+   cards:[{t:'A classmate is leaving college. The group is chipping in for a farewell gift.', c:400, tag:'social'},
+          {t:'A classmate is running a "double your money in 30 days" investment circle. She says it’s guaranteed.', c:1200, tag:'scam'}]},
+ {n:4, job:22000, fixed:1800, flavor:'Ganesh Chaturthi season — extra tutoring gigs mean a windfall month.',
+   cards:[{t:'A one-day resume-building workshop is being offered near campus.', c:1600, tag:'selfinvest'},
+          {t:'A younger student at your community centre is short on entrance-exam fees. The group is chipping in.', c:1200, tag:'social'}]},
+ {n:5, job:16000, fixed:3400, fixedNote:'includes a ₹1,600 hostel maintenance top-up',
+   cards:[{t:'Your laptop charger has stopped working. You need it for classes.', c:1000, tag:'necessity'},
+          {t:'A friend is moving cities. The group wants a farewell movie together.', c:500, tag:'social'}]},
+ {n:6, job:13000, fixed:1800, flavor:'Job hours got cut this month — a normal dip that part-time work has.',
+   cards:[{t:'That sale dress is back — 60% off now, even better than before.', c:900, tag:'discretionary'},
+          {t:'Navratri season — everyone’s renting outfits for garba nights.', c:900, tag:'discretionary'}]},
+ {n:7, job:18000, fixed:1800, flavor:'Diwali season is here.',
+   cards:[{t:'Diwali — everyone around you is buying new outfits for the celebrations.', c:1800, tag:'discretionary'},
+          {t:'Diwali sweets and diyas to share with your friend circle.', c:700, tag:'social'}]},
+ {n:8, job:14000, fixed:1800,
+   cards:[{t:'Monsoon rain got into your bag — your phone has water damage and needs repair.', c:1300, tag:'necessity'},
+          {t:'Your scholarship renewal is delayed. Do you take a quick private loan to cover this month’s fee gap while you wait?', c:2200, tag:'discretionary'}]},
+ {n:9, job:0, fixed:1800, emergency:7000, flavor:'You’ve fallen sick and missed every shift this month.', cards:[]},
+ {n:10, job:14000, fixed:1800, rebuildNudge:true, flavor:'Back on your feet. Time to rebuild.',
+   cards:[{t:'You need new shoes before internship interviews start.', c:1400, tag:'necessity'},
+          {t:'You want to thank the friend who looked after you while you were sick.', c:600, tag:'social'}]},
+ {n:11, job:19000, fixed:1800, flavor:'A placement-prep tutoring gig picks up.',
+   cards:[{t:'You need a travel pass to get to the tutoring gig.', c:900, tag:'necessity'},
+          {t:'An upskilling course you’ve been wanting to take is open for enrolment.', c:1400, tag:'selfinvest'}]},
+ {n:12, job:21000, fixed:1800, flavor:'The end of Year 1.',
+   cards:[{t:'Friends are planning a New Year trip together.', c:2200, tag:'discretionary'},
+          {t:'You need a proper bag for the year ahead.', c:1000, tag:'necessity'}]},
+ {n:13, job:24000, fixed:7500, fixedNote:'you’ve moved out for the internship — real rent, for the first time', flavor:'Year 2 begins. The subsidised hostel is behind you now.',
+   cards:[{t:'You need work-appropriate clothes for the internship.', c:1700, tag:'necessity'},
+          {t:'Your new team goes out for lunch on your first week. Everyone chips in.', c:600, tag:'social'}]},
+ {n:14, job:24000, fixed:7500,
+   cards:[{t:'Holi — colours and supplies to celebrate with friends.', c:600, tag:'discretionary'},
+          {t:'A good umbrella and raincoat before the monsoon starts.', c:800, tag:'necessity'}]},
+ {n:15, job:27000, fixed:7800, flavor:'A strong month at the internship — first investing round of Year 2.',
+   cards:[{t:'A professional certification exam could strengthen your resume.', c:2800, tag:'selfinvest'},
+          {t:'An IPL fantasy app promises easy winnings this season. Entry fee just this once?', c:600, tag:'scam'}]},
+ {n:16, job:25000, fixed:7800,
+   cards:[{t:'A college-fest reunion trip with old friends.', c:2000, tag:'discretionary'},
+          {t:'A proper laptop bag for the daily commute to work.', c:800, tag:'necessity'}]},
+ {n:17, job:29000, fixed:8000, flavor:'A performance bonus lands.',
+   cards:[{t:'Ganesh Chaturthi — a contribution to the community pandal.', c:700, tag:'social'},
+          {t:'A coworker has a "hot stock tip" — she says it’s a sure thing.', c:3500, tag:'scam'}]},
+ {n:18, job:24000, fixed:8000, flavor:'Diwali at the workplace this year.',
+   cards:[{t:'Diwali sales are everywhere — tempting to shop beyond your list.', c:2400, tag:'discretionary'},
+          {t:'A Diwali gift exchange with your office team.', c:800, tag:'social'}]},
+ {n:19, job:26000, fixed:8200,
+   cards:[{t:'Your phone is too old for the apps your work now needs — time for a new one.', c:3500, tag:'necessity'},
+          {t:'A weekend trip everyone’s posting about — you don’t want to miss out.', c:1800, tag:'discretionary'}]},
+ {n:20, job:28000, fixed:8200,
+   cards:[{t:'A client meeting means upgrading your work wardrobe.', c:1500, tag:'necessity'},
+          {t:'Friendship Day — small gifts for the circle that’s stuck with you all year.', c:600, tag:'social'}]},
+ {n:21, job:0, fixed:8200, emergency:10000, flavor:'A bad fall on the way to work — recovery takes the whole month, and rent doesn’t pause.', cards:[]},
+ {n:22, job:25000, fixed:8200, rebuildNudge:true, flavor:'Back on your feet again. Rebuilding, a second time.',
+   cards:[{t:'Physiotherapy sessions to finish your recovery properly.', c:1800, tag:'necessity'},
+          {t:'A thank-you gift for the coworkers who helped while you recovered.', c:600, tag:'social'}]},
+ {n:23, job:30000, fixed:8500, flavor:'A better job opportunity opens up.',
+   cards:[{t:'An interview outfit for a role that could mean a real raise.', c:1800, tag:'necessity'},
+          {t:'A coworker pushes a "guaranteed returns" crypto scheme — everyone’s talking about it.', c:3500, tag:'scam'}]},
+ {n:24, job:34000, fixed:8500, flavor:'The offer comes through. Two years, closed out.', finalMonth:true,
+   cards:[{t:'A proper laptop upgrade for the new role.', c:4500, tag:'selfinvest'},
+          {t:'A celebration with the friends who’ve been with you the whole way.', c:2800, tag:'discretionary'}]},
+];
+
+/* ---------------- 2-round practice trial, before the real 24 months ----------------
+   Same mechanics, tiny numbers, no emergency, nothing carries over — just enough to get
+   everyone comfortable with the phone before the real game starts. */
+const TRIAL_MONTHS = [
+ {n:'T1', trial:true, job:3000, fixed:600,
+   cards:[{t:'Trial round — your favourite stall is selling snacks after class.', c:150, tag:'discretionary'}]},
+ {n:'T2', trial:true, job:3500, fixed:600,
+   cards:[{t:'Trial round — your earphones stop working right before an exam.', c:300, tag:'necessity'}]},
+];
+
+/* ---------------- default market arc (facilitator can edit every cell before the show) ----------------
+   Shaped from real 2023-2025 India market behaviour: gold's steady multi-year rally, SIP-style
+   large-cap funds compounding quietly, and a real Nifty-style correction — nudged so the two
+   downturns land on Month 9 and Month 21, right where the emergencies hit. Months 1-2 are flat:
+   nobody has invested anything yet. */
+function defaultMarket(){
+  return [
+    {gold:0,   sip:0,   stocks:0},
+    {gold:0,   sip:0,   stocks:0},
+    {gold:1.2, sip:0.8, stocks:2.5},
+    {gold:0.8, sip:1.0, stocks:3.2},
+    {gold:1.5, sip:0.6, stocks:-1.5},
+    {gold:0.9, sip:0.9, stocks:1.8},
+    {gold:2.0, sip:0.7, stocks:-2.0},
+    {gold:1.1, sip:0.8, stocks:-4.5},
+    {gold:1.8, sip:0.5, stocks:-7.0},
+    {gold:0.6, sip:0.6, stocks:-3.0},
+    {gold:1.0, sip:0.9, stocks:4.5},
+    {gold:1.3, sip:1.0, stocks:5.5},
+    {gold:0.9, sip:0.8, stocks:2.0},
+    {gold:1.6, sip:0.7, stocks:1.2},
+    {gold:2.2, sip:0.9, stocks:3.0},
+    {gold:1.0, sip:0.8, stocks:-2.5},
+    {gold:0.7, sip:1.0, stocks:2.8},
+    {gold:1.4, sip:0.9, stocks:-1.0},
+    {gold:0.8, sip:0.7, stocks:-3.5},
+    {gold:1.1, sip:0.8, stocks:-5.0},
+    {gold:1.9, sip:0.6, stocks:-8.5},
+    {gold:1.0, sip:0.7, stocks:-2.0},
+    {gold:1.2, sip:0.9, stocks:3.5},
+    {gold:1.5, sip:1.0, stocks:6.0},
+  ];
+}
+
+const STRATS = {
+  safe:{label:'Safe', desc:'Mostly Gold & SIP — slow and steady', split:{gold:0.5, sip:0.4, stocks:0.1}},
+  balanced:{label:'Balanced', desc:'An even three-way split', split:{gold:0.34, sip:0.33, stocks:0.33}},
+  growth:{label:'Growth', desc:'Mostly Stocks — higher risk, higher swing', split:{gold:0.1, sip:0.3, stocks:0.6}},
+};
+
+/* ---------------- standalone static site: no shared backend ----------------
+   Market movements are fixed defaults (edit defaultMarket() and redeploy to change them).
+   The leaderboard is facilitator-entered on the host screen — nothing syncs across phones,
+   so this page needs no login and works for anyone with the link. */
+
+/* ---------------- routing ---------------- */
+const qs = new URLSearchParams(location.search);
+let ROLE = qs.get('mode'); // 'host' | 'player' | 'quick' | null
+const root = document.getElementById('root');
+
+function selfUrl(extra){ return location.origin + location.pathname + '?mode=' + extra; }
+
+if(!ROLE){ renderChooser(); } else if(ROLE==='math'){ renderMathSheet(); } else if(ROLE==='host'){ document.body.className='mode-host'; startHost(); }
+else if(ROLE==='player'){ document.body.className='mode-player'; startPlayer(false); }
+else if(ROLE==='quick'){ document.body.className='mode-quick'; startPlayer(true); }
+else { renderChooser(); }
+
+function renderChooser(){
+  document.body.className='mode-chooser';
+  root.innerHTML = `<div class="chooser">
+    <div class="tag">GamesForEd × Active Canvas</div>
+    <h1>MONEY MATTERS<br>SIMULATION</h1>
+    <div class="sub" style="color:var(--paper-dim); max-width:520px; font-size:15px;">Two years, twenty-four months. Choose how you’re joining.</div>
+    <div class="choice-grid">
+      <div class="choice-card" onclick="location.search='?mode=host'"><div class="ic">🖥️</div><div class="n">Facilitator</div><div class="d">Run the projector show: set up the year’s market movements ahead of time, then narrate the story live.</div></div>
+      <div class="choice-card" onclick="location.search='?mode=player'"><div class="ic">📱</div><div class="n">Player</div><div class="d">Play along on your own phone. Your choices, your balance, your spot on the leaderboard.</div></div>
+      <div class="choice-card" onclick="location.search='?mode=quick'"><div class="ic">⚡</div><div class="n">Quick Taster</div><div class="d">A 3-month solo preview — no room, no leaderboard, just a feel for how it plays.</div></div>
+    </div>
+    <div class="footer-note" style="opacity:.5; font-family:'IBM Plex Mono',monospace; font-size:11px;"><a href="?mode=math" style="color:var(--paper-dim);">How the maths works →</a></div>
+  </div>`;
+}
+
+/* =====================================================================
+   HOST (projector)
+   ===================================================================== */
+let hostMuted = false, hostAc = null;
+function hac(){ if(!hostAc){ try{ hostAc = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(hostAc && hostAc.state==='suspended') hostAc.resume(); return hostAc; }
+function htone(freq,dur,type,gain,delay){ if(hostMuted) return; const c=hac(); if(!c) return; const t0=c.currentTime+(delay||0); const osc=c.createOscillator(), g=c.createGain(); osc.type=type||'sine'; osc.frequency.setValueAtTime(freq,t0); g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(gain||0.05,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); osc.connect(g).connect(c.destination); osc.start(t0); osc.stop(t0+dur+0.02); }
+const hsfx = {
+  up:()=>{ htone(440,.14,'sine',.05,0); htone(660,.22,'sine',.05,.08); },
+  down:()=>{ htone(300,.22,'sine',.05,0); htone(190,.3,'sine',.05,.1); },
+  coin:()=>{ htone(880,.08,'square',.03,0); htone(1180,.12,'square',.03,.06); },
+  tick:()=>{ htone(1000,.03,'square',.02,0); },
+  alarm:()=>{ for(let k=0;k<4;k++){ htone(700,.16,'sawtooth',.045,k*.24); htone(500,.16,'sawtooth',.045,k*.24+.12); } },
+};
+let musicNodes = [], musicOn = false, musicMaster = null;
+function startMusic(){
+  const c = hac(); if(!c || musicOn) return; musicOn = true;
+  // Calm, sparse piano-style pentatonic ambience — soft plucked notes, long soothing decay.
+  const scale = [261.63,293.66,329.63,392.00,440.00,523.25,587.33]; // C major pentatonic-ish, one octave+
+  musicMaster = c.createGain(); musicMaster.gain.value = 0.05;
+  const warmth = c.createBiquadFilter(); warmth.type='lowpass'; warmth.frequency.value = 2200;
+  musicMaster.connect(warmth); warmth.connect(c.destination);
+
+  function pianoNote(freq, delay, dur, gain){
+    const t0 = c.currentTime + delay;
+    const o1 = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    o1.type='sine'; o2.type='triangle'; o1.frequency.value=freq; o2.frequency.value=freq*2.003;
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(gain, t0+0.04);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0+dur);
+    o1.connect(g); o2.connect(g); g.connect(musicMaster);
+    o1.start(t0); o2.start(t0); o1.stop(t0+dur+0.1); o2.stop(t0+dur+0.1);
+  }
+
+  function loop(){
+    if(!musicOn) return;
+    const note = scale[Math.floor(Math.random()*scale.length)];
+    pianoNote(note, 0, 3.2+Math.random()*1.6, 0.16);
+    if(Math.random()<0.35){ pianoNote(note*1.5, 0.35, 2.6, 0.08); } // an occasional soft harmony
+    musicNodes.push(setTimeout(loop, 2400+Math.random()*1800));
+  }
+  loop();
+}
+function stopMusic(){ musicOn=false; musicNodes.forEach(clearTimeout); musicNodes=[]; }
+
+const ICON_WALLET = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 9h18"/><circle cx="16.5" cy="13.5" r="1.3" fill="currentColor" stroke="none"/></svg>`;
+
+function buildHostScenes(market){
+  const scenes = [];
+  scenes.push({type:'title', note:'Welcome the room. Explain: everyone plays on her own phone. This screen tells the story — the phone does the maths.', eyebrow:'A TWO-YEAR MONEY SIMULATION', title:'MONEY MATTERS', sub:'Twenty-four months. One wallet. One emergency fund. A few investments. Let’s see how the balance moves.'});
+  scenes.push({type:'rules', note:'Explain the three places for the money.', eyebrow:'BEFORE WE START', title:'THREE PLACES FOR YOUR MONEY',
+    rows:[['Wallet','day-to-day spending'],['Emergency Fund','only for real emergencies'],['Investments','Gold · SIP · Stocks']]});
+  scenes.push({type:'qr', note:'Everyone scans this now and enters a name on their phone. Give the room a minute to settle before moving on — a show of hands works fine to check everyone’s in.', eyebrow:'GET YOUR PHONE OUT', title:'SCAN TO JOIN', url: selfUrl('player')});
+  scenes.push({type:'rules2', note:'Say it out loud: "10% of every month’s income goes to your Emergency Fund, automatically, before anything else."', eyebrow:'RULE #1 — PAY YOURSELF FIRST', title:'10% TO YOUR FUND, EVERY MONTH', sub:'Every month, 10% of that month’s income moves into the Emergency Fund. It’s automatic. It’s the same rule whether the month was great or terrible.'});
+  scenes.push({type:'rules3', note:'The market moves every single month now, not just occasionally.', eyebrow:'RULE #2 — THE MARKET NEVER SITS STILL', title:'GOLD, SIP AND STOCKS MOVE EVERY MONTH', sub:'Once you’ve invested, your money keeps moving with the market — up some months, down others — for the rest of the year. You’ll only choose new amounts every few months, but the numbers move every month.'});
+
+  scenes.push({type:'month', month:'PRACTICE', note:'Two quick practice rounds — small numbers, nothing that counts. This is just to get everyone comfortable with their phone before the real game starts.', title:'PRACTICE ROUND'});
+  TRIAL_MONTHS.forEach(m=>{
+    const label = 'TRIAL ROUND '+m.n.slice(1);
+    scenes.push({type:'month', month:label, note:'Turn the page.', title:label});
+    scenes.push({type:'income', month:label, sfx:'up', note:'Small trial numbers.', eyebrow:'MONEY IN', title:'INCOME',
+      rows:[['Pocket money support','2,500'],['Groceries & meals support','2,500'],['Part-time / work income', String(m.job)]], total:['Total income', String(SUPPORT+m.job)]});
+    scenes.push({type:'expense', month:label, sfx:'down', note:'Fixed — no choice involved.', eyebrow:'MONEY OUT — FIXED', title:'FIXED EXPENSES',
+      rows:[['Mobile + transport', String(m.fixed)]], total:['Total fixed expenses', String(m.fixed)]});
+    const dep = Math.round((SUPPORT+m.job)*0.10);
+    scenes.push({type:'ef', month:label, sfx:'coin', note:'Same rule as the real game — 10% every month.', eyebrow:'PAY YOURSELF FIRST', title:'MOVE 10% TO YOUR EMERGENCY FUND', dep});
+    (m.cards||[]).forEach((c,ci)=>{
+      scenes.push({type:'card', month:label, note:'Read it aloud. Everyone decides on their phone.', timer:20,
+        eyebrow:'PRACTICE DECISION', card:c.t, cost:String(c.c), tag:'Is this worth it?'});
+    });
+    scenes.push({type:'settle', month:label, note:'Quick recap, then move to the next trial round (or the real game).', eyebrow:label+' DONE', title:'CHECK YOUR PHONE RECAP'});
+  });
+  scenes.push({type:'lesson', month:'PRACTICE', note:'Confirm everyone’s comfortable with the phone before starting the real game. Answer any quick questions now.', eyebrow:'PRACTICE OVER', title:'THE REAL TWO YEARS START NOW.', sub:'Everyone’s numbers reset to zero on their phone. From here, every decision counts.'});
+
+  MONTHS.forEach((m,mi)=>{
+    scenes.push({type:'month', month:'MONTH '+m.n, idx:m.n, note: m.flavor || 'Turn the page.', title:'MONTH '+m.n, sub:m.flavor});
+    scenes.push({type:'income', month:'MONTH '+m.n, idx:m.n, sfx:'up', note:'Read the numbers as they land.', eyebrow: m.job? 'MONEY IN':'MONEY IN — A ROUGH MONTH',
+      title:'INCOME', rows:[['Pocket money support','2,500'],['Groceries & meals support','2,500'],[m.job? 'Part-time / work income':'Work income — none this month', String(m.job)]], total:['Total income', String(SUPPORT+m.job)]});
+    scenes.push({type:'expense', month:'MONTH '+m.n, idx:m.n, sfx:'down', note:'Fixed — no choice involved.', eyebrow:'MONEY OUT — FIXED', title:'FIXED EXPENSES',
+      rows:[['Mobile + transport' + (m.fixedNote? ' + one extra':''), String(m.fixed)]], total:['Total fixed expenses', String(m.fixed)], fixedNote:m.fixedNote});
+
+    const dep = Math.round((SUPPORT+m.job)*0.10);
+    scenes.push({type:'ef', month:'MONTH '+m.n, idx:m.n, sfx:'coin', note:'Everyone’s phone does this automatically — 10% of this month’s income.', eyebrow:'PAY YOURSELF FIRST', title:'MOVE 10% TO YOUR EMERGENCY FUND', dep});
+
+    (m.cards||[]).forEach((c,ci)=>{
+      scenes.push({type:'card', month:'MONTH '+m.n, note:'Read it aloud. Everyone decides on their phone: Pay / Skip / Use Emergency Fund.', timer:25,
+        eyebrow:'DECISION '+(ci+1)+' OF '+m.cards.length, card:c.t, cost:String(c.c), tag:'Is this worth it?'});
+    });
+
+    const isQuarterEnd = (m.n % 3 === 0);
+    if(isQuarterEnd && !m.emergency){
+      scenes.push({type:'investchoice', month:'MONTH '+m.n, idx:m.n, note:'Investing round — everyone picks an amount and a strategy on their phone.', timer:35,
+        eyebrow:'INVESTMENT ROUND', title:'PUT SOME CASH TO WORK?'});
+    }
+
+    if(m.emergency){
+      scenes.push({type:'emergency', month:'MONTH '+m.n, note:'The big moment. Let it sit in silence for a few seconds before speaking.', sfx:'alarm', shake:true, flash:'bad',
+        eyebrow:'EMERGENCY', title: m.n===9 ? 'HOSPITAL + MEDICINE BILL' : 'A SECOND EMERGENCY', amount:String(m.emergency), sub:'Due immediately, on top of a month with almost no income. Everyone taps through on their phone to see what happens to them.'});
+      scenes.push({type:'penalty', month:'MONTH '+m.n, note:'For anyone whose fund wasn’t enough: read the terms aloud. Deliberately a bad deal, like a real informal lender.', eyebrow:'IF YOUR FUND ISN’T ENOUGH', title:'THE PENALTY LOAN', pct:20});
+    }
+
+    const mk = market[m.n-1];
+    scenes.push({type:'ticker', month:'MONTH '+m.n, note:'This applies to whatever anyone currently has invested — even if they didn’t choose anything new this month.', sfx: mk.stocks<0?'down':'up', shake: mk.stocks<=-6, flash: mk.stocks<=-6?'bad':(mk.stocks>=5?'good':null),
+      eyebrow:'MARKET — MONTH '+m.n, title:'THIS MONTH’S MOVEMENT', gold:mk.gold, sip:mk.sip, stocks:mk.stocks});
+
+    scenes.push({type:'settle', month:'MONTH '+m.n, note:'Everyone checks their phone recap — Wallet, Fund, Invested, and this month’s maths if they want it.', eyebrow:'MONTH '+m.n+' CLOSED', title:'CHECK YOUR PHONE RECAP'});
+
+    // trivia breaks at a few natural points
+    if(m.n===3){ pushTrivia(scenes,'A SIP means investing the same fixed amount every month, automatically.','TRUE','A SIP (Systematic Investment Plan) invests a fixed amount every month automatically — small and boring, which is exactly why it works over years.'); }
+    if(m.n===8){ pushTrivia(scenes,'"Double your money in 30 days, guaranteed" is a normal, safe investment offer.','FALSE','No legitimate investment guarantees doubling your money in a month. Guaranteed, fast, too-good-to-check — that pattern is the classic sign of a scam.'); }
+    if(m.n===10){ pushTrivia(scenes,'It’s normal for stock prices to fall sharply sometimes, even in a healthy market.','TRUE','Sharp short-term drops are a normal part of how markets behave — not a sign something is broken.'); }
+    if(m.n===15){ pushTrivia(scenes,'Gold jewellery you wear counts as a strong investment asset.','FALSE','Making charges and resale loss eat into jewellery’s value. Digital gold or Sovereign Gold Bonds are the form that actually behaves like an investment.'); }
+    if(m.n===22){ pushTrivia(scenes,'Once you dip into your Emergency Fund, you never need to refill it.','FALSE','An Emergency Fund is meant to be used — and then rebuilt. That rebuilding is just as important as building it the first time.'); }
+  });
+
+  scenes.push({type:'debrief', eyebrow:'LET’S TALK', title:'WHAT DID YOU NOTICE?', rows:[
+    ['Who never touched their fund except for a real emergency?',''],
+    ['Who pulled back on stocks after Month 10 — did you miss the Month 16 recovery?',''],
+    ['Where do you stand on the leaderboard, and does that match how it felt to play?',''],
+    ['Those scam cards — who said yes, and why did it feel tempting in the moment?',''],
+  ]});
+  scenes.push({type:'lesson', eyebrow:'THE ONE RULE', title:'AN EMERGENCY FUND ISN’T FOR INVESTING.', sub:'It’s the money that means you never have to take a bad loan, sell an investment at a loss, or go without, when something goes wrong. It grows slowly, on purpose — and when you use it, you rebuild it.'});
+  scenes.push({type:'final', eyebrow:'ONCE YOUR FUND IS BUILT', title:'FOUR WAYS TO GROW WHAT’S LEFT', note:'Real numbers and rules of thumb come from [ADVISOR NAME], who joined us to answer questions.', cards:[
+    ['GOLD','A steady hedge that tends to hold its value over years. Digital gold or Sovereign Gold Bonds — not jewellery — is the form that actually works as an investment.'],
+    ['SIP','Small, fixed amounts invested automatically every month into a mutual fund. Slow and unglamorous — which is exactly why it works over 5-10 years.'],
+    ['STOCKS','Ownership in a real company. Can rise or fall sharply in the short term — only for money you won’t need soon, and only if you can hold through a dip.'],
+    ['FD','A fixed deposit locks money at a bank for a set time at a guaranteed rate. Low risk, low return, and breaking it early usually costs you a penalty.'],
+  ]});
+  scenes.push({type:'thanks', eyebrow:'THANK YOU', title:'YOUR BALANCE, YOUR CHOICES', sub:'Two years, twenty-four months. The habits you practiced here are the same ones you’ll use for the rest of your working life.'});
+  return scenes;
+}
+function pushTrivia(scenes, statement, answer, explain){
+  scenes.push({type:'trivia', note:'Quick-fire round. Give the room a few seconds to shout an answer, then advance.', timer:10, eyebrow:'QUICK FIRE', statement});
+  scenes.push({type:'triviaReveal', note:'Reveal: '+answer+'.', eyebrow:'QUICK FIRE — ANSWER', answer, explain});
+}
+
+function startHost(){
+  root.innerHTML = `<div class="stage" id="stage"><div class="frame"></div>
+    <div id="showHost" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative;"></div>
+  </div>`;
+  // Market numbers are fixed (defaultMarket()) so the host's narration always matches
+  // every player's phone exactly — there's no shared backend to sync a live edit through.
+  launchHostShow(defaultMarket());
+}
+
+let hScenes = [], hi = 0, hTimerHandle=null, hTickHandle=null, hLbUnsub=null;
+function launchHostShow(market){
+  hScenes = buildHostScenes(market);
+  const showEl = document.getElementById('showHost');
+  showEl.style.display='flex';
+  showEl.innerHTML = `
+    <div class="topcorner" id="hLoc"></div>
+    <div class="topright">
+      <button class="icon-btn" id="lbBtn" title="Show leaderboard">🏆</button>
+      <button class="icon-btn" id="musicBtn" title="Toggle music">🎵</button>
+      <button class="icon-btn" id="muteBtn" title="Toggle sound">🔊</button>
+    </div>
+    <div class="scene-wrap"><div class="scene" id="hScene"></div></div>
+    <div class="progress-dots" id="hDots"></div>
+    <div class="hint">→ next &nbsp;·&nbsp; ← back &nbsp;·&nbsp; N notes</div>
+    <div class="notes" id="hNotes"></div>
+    <div class="flash" id="hFlash"></div>
+    <div id="lbOverlay" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(6,8,7,.96); flex-direction:column; align-items:center; justify-content:center; gap:22px; text-align:center;"></div>`;
+  document.getElementById('musicBtn').onclick = ()=>{ if(musicOn){ stopMusic(); document.getElementById('musicBtn').textContent='🎵'; } else { startMusic(); document.getElementById('musicBtn').textContent='🎶'; } };
+  document.getElementById('muteBtn').onclick = ()=>{ hostMuted=!hostMuted; document.getElementById('muteBtn').textContent = hostMuted?'🔇':'🔊'; };
+  document.getElementById('lbBtn').onclick = ()=>{ toggleLeaderboardOverlay(); };
+  document.getElementById('stage').addEventListener('click', e=>{ if(e.target.closest('.notes')||e.target.closest('.icon-btn')||e.target.closest('#lbOverlay')) return; hgo(1); });
+  window.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); hgo(1); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); hgo(-1); }
+    else if(e.key.toLowerCase()==='n'){ document.getElementById('hNotes').classList.toggle('show'); }
+  });
+  hi=0; hrender();
+}
+function hgo(d){ const ni=Math.min(hScenes.length-1,Math.max(0,hi+d)); if(ni===hi) return; hi=ni; hrender(); }
+function hdots(){ document.getElementById('hDots').innerHTML = hScenes.map((_,idx)=>`<div class="dot${idx===hi?' active':''}"></div>`).join(''); }
+function hloc(){ const s=hScenes[hi]; document.getElementById('hLoc').innerHTML = s.month? `<b>${s.month}</b> &nbsp;·&nbsp; scene ${hi+1}/${hScenes.length}` : `scene ${hi+1}/${hScenes.length}`; }
+function hclearTimer(){ if(hTimerHandle){ clearTimeout(hTimerHandle); hTimerHandle=null; } if(hTickHandle){ clearInterval(hTickHandle); hTickHandle=null; } }
+
+let lbOpen = false;
+let lbEntries = [];
+try{ lbEntries = JSON.parse(localStorage.getItem('mm_lb_entries')||'[]'); }catch(e){ lbEntries = []; }
+function saveLbEntries(){ try{ localStorage.setItem('mm_lb_entries', JSON.stringify(lbEntries)); }catch(e){} }
+
+function toggleLeaderboardOverlay(){
+  const el = document.getElementById('lbOverlay');
+  lbOpen = !lbOpen;
+  if(lbOpen){ el.style.display = 'flex'; renderHostLeaderboard(); }
+  else { el.style.display = 'none'; }
+}
+function renderHostLeaderboard(){
+  const el = document.getElementById('lbOverlay');
+  const sorted = [...lbEntries].sort((a,b)=>b.score-a.score);
+  el.innerHTML = `<div class="eyebrow gold">LEADERBOARD</div><div class="display mid">FINAL STANDINGS</div>
+    <div class="lb-list" id="lbList">${sorted.length? sorted.map((r,idx)=>`<div class="lb-row ${idx===0?'top1':''}"><span class="rank">#${idx+1}</span><span class="nm">${r.name}</span><span class="sc">${RUPEE(r.score)}</span></div>`).join('') : '<div class="sub">No scores entered yet — add them below as girls tell you their final number.</div>'}</div>
+    <div style="display:flex; gap:8px;">
+      <input id="lbName" placeholder="Name" style="font-family:'IBM Plex Mono',monospace; background:var(--ink-2); border:1px solid var(--line); color:var(--paper); padding:10px 12px; border-radius:4px; width:160px;">
+      <input id="lbScore" type="number" placeholder="Final score (₹)" style="font-family:'IBM Plex Mono',monospace; background:var(--ink-2); border:1px solid var(--line); color:var(--paper); padding:10px 12px; border-radius:4px; width:160px;">
+      <button class="btn" id="lbAddBtn">Add</button>
+    </div>
+    <button class="btn ghost" id="lbCloseBtn">Close</button>`;
+  document.getElementById('lbCloseBtn').onclick = (e)=>{ e.stopPropagation(); toggleLeaderboardOverlay(); };
+  document.getElementById('lbAddBtn').onclick = (e)=>{
+    e.stopPropagation();
+    const name = document.getElementById('lbName').value.trim();
+    const score = parseFloat(document.getElementById('lbScore').value);
+    if(!name || isNaN(score)) return;
+    lbEntries.push({name, score}); saveLbEntries(); renderHostLeaderboard();
+  };
+}
+
+function hrender(){
+  hclearTimer();
+  const s = hScenes[hi];
+  const el = document.getElementById('hScene');
+  hloc(); hdots();
+  document.getElementById('hNotes').innerHTML = s.note? `<b>FACILITATOR CUE —</b> ${s.note}` : '';
+  let html='';
+  if(s.type==='title'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display huge gold">${s.title}</div><div class="sub">${s.sub}</div>`; }
+  else if(s.type==='rules'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="ledger">${s.rows.map(r=>`<div class="lrow"><span class="lb">${r[0]}</span><span class="v">${r[1]}</span></div>`).join('')}</div>`; }
+  else if(s.type==='qr'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid gold">${s.title}</div><div class="qrbox"><div id="qrTarget"></div></div><div class="sub">Once you’ve scanned in and entered your name, wait here — we’ll start together.</div>`; }
+  else if(s.type==='rules2'||s.type==='rules3'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display big gold">${s.title}</div><div class="sub">${s.sub}</div>`; }
+  else if(s.type==='month'){ html=`<div class="eyebrow">CHAPTER</div><div class="display huge">${s.title}</div>${s.sub?`<div class="sub">${s.sub}</div>`:''}`; }
+  else if(s.type==='income'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="ledger">
+      ${s.rows.map((r,ri)=>`<div class="lrow" style="animation-delay:${ri*.12}s"><span class="lb">${r[0]}</span><span class="v">${RUPEE(num(r[1]))}</span></div>`).join('')}
+      <div class="lrow total" style="animation-delay:${s.rows.length*.12+.1}s"><span class="lb">${s.total[0]}</span><span class="v">${RUPEE(num(s.total[1]))}</span></div></div>`; }
+  else if(s.type==='expense'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="ledger">
+      ${s.rows.map((r,ri)=>`<div class="lrow" style="animation-delay:${ri*.12}s"><span class="lb">${r[0]}</span><span class="v neg">−${RUPEE(num(r[1]))}</span></div>`).join('')}
+      ${s.fixedNote?`<div class="sub" style="margin-top:4px;">${s.fixedNote}</div>`:''}
+      <div class="lrow total" style="animation-delay:${s.rows.length*.12+.1}s"><span class="lb">${s.total[0]}</span><span class="v neg">−${RUPEE(num(s.total[1]))}</span></div></div>`; }
+  else if(s.type==='ef'){ html=`<div class="eyebrow good">${s.eyebrow}</div><div class="display big gold">${s.title}</div>
+      <div class="sub">10% of this month’s income = <b style="color:var(--gold-bright)">${RUPEE(s.dep)}</b></div>`; }
+  else if(s.type==='card'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="card-face"><div class="narrative">"${s.card}"</div></div>
+      <div class="display big">${RUPEE(num(s.cost))}</div>
+      <div class="sub" style="font-family:'IBM Plex Mono',monospace; letter-spacing:.1em; text-transform:uppercase; font-style:normal;">${s.tag} — Pay · Skip · Use Emergency Fund</div>
+      <div class="timer-label" id="hTimerLabel">${s.timer}s to decide</div><div class="bar-wrap"><div class="bar-fill" id="hBarFill"></div></div>`; }
+  else if(s.type==='investchoice'){ html=`<div class="eyebrow gold">${s.eyebrow}</div><div class="display big">${s.title}</div>
+      <div class="ledger"><div class="lrow"><span class="lb">Gold</span><span class="v" style="font-style:italic;color:var(--paper-dim);font-weight:400;">stable, slow</span></div>
+      <div class="lrow"><span class="lb">SIP</span><span class="v" style="font-style:italic;color:var(--paper-dim);font-weight:400;">small, steady, automatic</span></div>
+      <div class="lrow"><span class="lb">Stocks</span><span class="v" style="font-style:italic;color:var(--paper-dim);font-weight:400;">can jump — or drop</span></div></div>
+      <div class="timer-label" id="hTimerLabel">${s.timer}s to decide</div><div class="bar-wrap"><div class="bar-fill" id="hBarFill"></div></div>`; }
+  else if(s.type==='ticker'){ const items=[['GOLD',s.gold],['SIP',s.sip],['STOCKS',s.stocks]];
+      html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="ticker">${items.map((it,ti)=>`<div class="titem" style="animation-delay:${ti*.15}s"><span class="n">${it[0]}</span><span class="m" style="color:${it[1]<0?'var(--red-bright)':'var(--green-bright)'}">${it[1]<0?'▼':'▲'} ${Math.abs(it[1]).toFixed(1)}%</span></div>`).join('')}</div>`; }
+  else if(s.type==='settle'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display big gold">${s.title}</div>`; }
+  else if(s.type==='emergency'){ html=`<div class="eyebrow alert">${s.eyebrow}</div><div class="display big red">${s.title}</div><div class="display huge red">${RUPEE(num(s.amount))}</div><div class="sub">${s.sub}</div>`; }
+  else if(s.type==='penalty'){ html=`<div class="eyebrow alert">${s.eyebrow}</div><div class="display mid red">${s.title}</div>
+      <div class="ledger"><div class="lrow"><span class="lb">Borrow to cover the gap</span><span class="v">up to the shortfall</span></div>
+      <div class="lrow total"><span class="lb">Pay back next month</span><span class="v" style="color:var(--red-bright)">+${s.pct}%</span></div></div>`; }
+  else if(s.type==='trivia'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid gold">TRUE OR FALSE?</div><div class="narrative">"${s.statement}"</div>
+      <div class="trivia-opts"><div class="topt">TRUE</div><div class="topt">FALSE</div></div>
+      <div class="timer-label" id="hTimerLabel">${s.timer}s</div><div class="bar-wrap"><div class="bar-fill" id="hBarFill"></div></div>`; }
+  else if(s.type==='triviaReveal'){ html=`<div class="eyebrow gold">${s.eyebrow}</div><div class="display big ${s.answer==='TRUE'?'green':'red'}">${s.answer}</div><div class="sub">${s.explain}</div>`; }
+  else if(s.type==='debrief'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display big">${s.title}</div><div class="ledger" style="max-width:720px;">${s.rows.map(r=>`<div class="lrow" style="border-bottom:1px dashed var(--line);"><span class="lb" style="font-family:'Spectral',Georgia,serif;font-style:italic;font-size:16px;">${r[0]}</span></div>`).join('')}</div>`; }
+  else if(s.type==='lesson'){ html=`<div class="eyebrow gold">${s.eyebrow}</div><div class="display big gold">${s.title}</div><div class="sub">${s.sub}</div>`; }
+  else if(s.type==='final'){ html=`<div class="eyebrow">${s.eyebrow}</div><div class="display mid">${s.title}</div><div class="final-grid">${s.cards.map(c=>`<div class="final-card"><div class="fname">${c[0]}</div><p>${c[1]}</p></div>`).join('')}</div>`; }
+  else if(s.type==='thanks'){ html=`<div class="eyebrow gold">${s.eyebrow}</div><div class="display huge">${s.title}</div><div class="sub">${s.sub}</div>`; }
+
+  el.classList.remove('enter'); el.innerHTML = html; void el.offsetWidth; el.classList.add('enter');
+  if(s.type==='qr'){ renderQR(document.getElementById('qrTarget'), s.url); }
+
+  document.getElementById('stage').classList.remove('shake');
+  if(s.shake){ void document.getElementById('stage').offsetWidth; document.getElementById('stage').classList.add('shake'); }
+  if(s.flash){ const f=document.getElementById('hFlash'); f.className='flash '+s.flash; void f.offsetWidth; f.classList.add('hit'); }
+  document.getElementById('stage').classList.toggle('alert-glow', s.type==='emergency');
+  if(s.sfx) hsfx[s.sfx] && hsfx[s.sfx]();
+
+  if(s.timer){
+    const fill = document.getElementById('hBarFill'); let remaining = s.timer;
+    requestAnimationFrame(()=>{ fill.classList.add('run'); fill.style.transitionDuration=s.timer+'s'; requestAnimationFrame(()=>{ fill.style.width='0%'; }); });
+    hTickHandle = setInterval(()=>{ remaining-=1; const lbl=document.getElementById('hTimerLabel'); if(lbl) lbl.textContent=Math.max(remaining,0)+'s'; if(remaining<=5&&remaining>0) hsfx.tick(); if(remaining<=0) clearInterval(hTickHandle);
+      const pct=remaining/s.timer; if(fill) fill.style.backgroundColor = pct>0.5?'':pct>0.2?'var(--gold)':'var(--red-bright)'; },1000);
+  }
+}
+function renderQR(box,url){ if(!box||typeof qrcode==='undefined') return; const qr=qrcode(0,'M'); qr.addData(url); qr.make(); box.innerHTML=qr.createSvgTag({cellSize:5,margin:2}); }
+
+/* =====================================================================
+   PLAYER (phone) + QUICK TASTER
+   ===================================================================== */
+function startPlayer(isQuick){
+  const monthsToPlay = isQuick ? MONTHS.slice(0,3) : MONTHS;
+  root.innerHTML = `${isQuick?'<div class="quickband">⚡ Quick Taster — 3 months, solo, nothing saved to a leaderboard</div>':''}
+    <div class="app" id="app">
+      <div class="topbar" id="topbar">
+        <div class="tb-row"><span class="brand">MONEY MATTERS</span><span class="loc" id="ploc"></span></div>
+        <div class="stats">
+          <div class="stat"><div class="l">Wallet</div><div class="v" id="vWallet">₹0</div><div class="d" id="dWallet"></div></div>
+          <div class="stat"><div class="l">Emerg. Fund</div><div class="v" id="vEF">₹0</div><div class="d" id="dEF"></div></div>
+          <div class="stat"><div class="l">Invested</div><div class="v" id="vInv">₹0</div><div class="d" id="dInv"></div></div>
+        </div>
+        <div class="segs" id="psegs"></div>
+      </div>
+      <div class="pstage" id="pstage"></div>
+    </div><div class="flash" id="pflash"></div>`;
+
+  let playerId = null;
+  try{ playerId = localStorage.getItem('mm_player_id'); if(!playerId){ playerId = 'p'+Math.random().toString(36).slice(2,10); localStorage.setItem('mm_player_id', playerId); } }catch(e){ playerId = 'p'+Math.random().toString(36).slice(2,10); }
+
+  // Market numbers are the same fixed defaultMarket() the host uses — no backend needed to keep them in sync.
+  const market = defaultMarket();
+
+  let state = { name:'', wallet:0, ef:0, gold:0, sip:0, stocks:0, loan:0, quarterIncomeSum:0,
+    flags:{dipUsedForNonEmergency:false, scamPaid:false, socialPaid:0, socialTotal:0, selfinvestPaid:0, investRounds:0} };
+  if(!isQuick){
+    try{ const saved = JSON.parse(localStorage.getItem('mm_state_v1')||'null'); if(saved) state = saved; }catch(e){}
+  }
+  function save(){ if(isQuick) return; try{ localStorage.setItem('mm_state_v1', JSON.stringify(state)); }catch(e){} }
+  function invTotal(){ return state.gold+state.sip+state.stocks; }
+  function finalScore(){ return state.wallet+state.ef+invTotal()-state.loan; }
+  function resetForRealGame(){
+    state = { name: state.name, wallet:0, ef:0, gold:0, sip:0, stocks:0, loan:0, quarterIncomeSum:0,
+      flags:{dipUsedForNonEmergency:false, scamPaid:false, socialPaid:0, socialTotal:0, selfinvestPaid:0, investRounds:0} };
+    save();
+  }
+
+  let program = [];
+  function pushMonth(m){
+    program.push({type:'monthhead', m});
+    program.push({type:'income', m});
+    program.push({type:'expense', m});
+    program.push({type:'ef', m});
+    (m.cards||[]).forEach((c,idx)=>program.push({type:'card', m, c, idx}));
+    if(!m.trial){
+      const isQuarterEnd = (typeof m.n==='number' && m.n % 3 === 0);
+      if(isQuarterEnd && !m.emergency){ program.push({type:'invest', m}); }
+      if(m.emergency){ program.push({type:'emergency', m}); }
+      program.push({type:'reveal', m});
+    }
+    program.push({type:'recap', m});
+  }
+  function buildProgram(){
+    program = [{type:'welcome'},{type:'rules'}];
+    if(!isQuick){
+      TRIAL_MONTHS.forEach(pushMonth);
+      program.push({type:'trialend'});
+    }
+    monthsToPlay.forEach(pushMonth);
+    program.push({type:'finale'});
+  }
+  buildProgram();
+
+  let pi = 0, chosenAmt=null, chosenStrat=null, showMath=false;
+
+  function animateStat(key, elId){
+    const el = document.getElementById(elId); const from = parseFloat(el.dataset.raw||'0');
+    const to = key==='wallet'?state.wallet:key==='ef'?state.ef:invTotal();
+    const t0=performance.now(), dur=600;
+    function step(t){ const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3); el.textContent=RUPEE(from+(to-from)*e); if(p<1) requestAnimationFrame(step); else { el.textContent=RUPEE(to); el.dataset.raw=to; } }
+    requestAnimationFrame(step);
+  }
+  function flashDelta(amount, elId){ if(!amount) return; const el=document.getElementById(elId); el.textContent=(amount>0?'+':'−')+RUPEE(Math.abs(amount)); el.className='d show '+(amount>0?'pos':'neg'); void el.offsetWidth; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
+  function applyDelta(d){
+    if(d.wallet){ state.wallet+=d.wallet; animateStat('wallet','vWallet'); flashDelta(d.wallet,'dWallet'); }
+    if(d.ef){ state.ef+=d.ef; animateStat('ef','vEF'); flashDelta(d.ef,'dEF'); }
+    save();
+  }
+  function psegs(){ const cur=program[pi]; const curM = (cur&&cur.m&&typeof cur.m.n==='number')?cur.m.n:(cur&&cur.type==='finale'?monthsToPlay.length:0); const total=monthsToPlay.length; let html=''; for(let k=1;k<=total;k++){ html+=`<div class="seg ${curM>k?'done':curM===k?'now':''}"></div>`; } document.getElementById('psegs').innerHTML=html; }
+  function ploc(){ const cur=program[pi]; if(cur&&cur.m&&cur.m.trial){ document.getElementById('ploc').textContent='TRIAL'; return; } document.getElementById('ploc').textContent = cur&&cur.m? 'MONTH '+cur.m.n+(isQuick?' / 3':' / 24') : ''; }
+  function pflash(cls){ const f=document.getElementById('pflash'); f.className='flash '+cls; void f.offsetWidth; f.classList.add('hit'); }
+  function pshake(){ const a=document.getElementById('app'); a.classList.remove('shake'); void a.offsetWidth; a.classList.add('shake'); }
+  function pnext(){ if(pi<program.length-1){ pi++; showMath=false; prender(); } }
+
+  function mathBlock(m, extra){
+    const income = SUPPORT+m.job;
+    let html = `<div class="mathbox">
+      Income = ₹2,500 + ₹2,500 + ${RUPEE(m.job)} (work) = <b>${RUPEE(income)}</b><br>
+      After fixed costs = ${RUPEE(income)} − ${RUPEE(m.fixed)} = <b>${RUPEE(income-m.fixed)}</b>`;
+    if(extra) html += '<br>'+extra;
+    html += `</div>`;
+    return html;
+  }
+
+  function prender(){
+    const st = program[pi];
+    const stage = document.getElementById('pstage');
+    const topbar = document.getElementById('topbar');
+    topbar.classList.toggle('hidden', st.type==='welcome'||st.type==='rules');
+    ploc(); psegs();
+    let html='';
+
+    if(st.type==='welcome'){
+      html = `<div class="eyebrow">${isQuick?'QUICK TASTER':'A TWO-YEAR SIMULATION'}</div><h1 class="disp xl gold">MONEY<br>MATTERS</h1>
+        <div class="psub">${isQuick?'Three months, just for you — a feel for how the year plays out.':'Twenty-four months. This phone does the maths — you make the calls. At the end, tell your facilitator your final score for the leaderboard.'}</div>
+        <input class="nametxt" id="nameInput" placeholder="Your name${isQuick?' (optional)':' (for the leaderboard)'}" value="${state.name||''}">
+        <button class="pbtn big" onclick="window.__mm_start()">Begin →</button>`;
+    }
+    else if(st.type==='rules'){
+      html = `<div class="eyebrow">BEFORE MONTH 1</div><h1 class="disp lg">THREE PLACES FOR YOUR MONEY</h1>
+        <div class="pledger"><div class="plrow" style="animation-delay:.05s"><span>👛 Wallet</span><span>day-to-day spending</span></div>
+        <div class="plrow" style="animation-delay:.15s"><span>🛡️ Emergency Fund</span><span>only for real emergencies</span></div>
+        <div class="plrow" style="animation-delay:.25s"><span>🌱 Investments</span><span>Gold · SIP · Stocks</span></div></div>
+        <div class="psub"><b style="color:var(--gold-bright)">Rule:</b> every three months, 10% of that quarter’s income moves to your Emergency Fund automatically. The market moves every month once you’re invested.</div>
+        <button class="pbtn big" onclick="window.__mm_next()">I’m ready →</button>`;
+    }
+    else if(st.type==='monthhead'){
+      const label = st.m.trial ? 'TRIAL ROUND '+st.m.n.slice(1) : 'MONTH '+st.m.n;
+      html = `<div class="eyebrow">${st.m.trial?'PRACTICE':'CHAPTER'}</div><h1 class="disp xl${st.m.trial?' gold':''}">${label}</h1>${st.m.flavor?`<div class="psub">${st.m.flavor}</div>`:''}
+        <button class="pbtn big" onclick="window.__mm_next()">Continue →</button>`;
+    }
+    else if(st.type==='income'){
+      const total = SUPPORT+st.m.job; const loanDue = state.loan;
+      html = `<div class="eyebrow">MONEY IN</div><h1 class="disp lg">INCOME</h1>
+        <div class="pledger"><div class="plrow" style="animation-delay:.05s"><span>Pocket money support</span><span>₹2,500</span></div>
+        <div class="plrow" style="animation-delay:.15s"><span>Groceries & meals support</span><span>₹2,500</span></div>
+        <div class="plrow" style="animation-delay:.25s"><span>${st.m.job?'Work income':'Work — none this month'}</span><span>${RUPEE(st.m.job)}</span></div>
+        ${loanDue?`<div class="plrow" style="animation-delay:.32s"><span>Loan repayment</span><span style="color:var(--red-bright)">−${RUPEE(loanDue)}</span></div>`:''}
+        <div class="plrow total" style="animation-delay:.4s"><span>Net this month</span><span class="v">${RUPEE(total-loanDue)}</span></div></div>
+        <button class="pbtn big" onclick="window.__mm_income(${total},${loanDue})">Add to wallet →</button>`;
+    }
+    else if(st.type==='expense'){
+      html = `<div class="eyebrow">MONEY OUT — FIXED</div><h1 class="disp lg">FIXED EXPENSES</h1>
+        <div class="pledger"><div class="plrow" style="animation-delay:.05s"><span>Mobile + transport${st.m.fixedNote?' + one extra':''}</span><span>−${RUPEE(st.m.fixed)}</span></div></div>
+        ${st.m.fixedNote?`<div class="psub">${st.m.fixedNote}</div>`:''}
+        <button class="pbtn big" onclick="window.__mm_expense(${st.m.fixed})">Pay fixed costs →</button>`;
+    }
+    else if(st.type==='ef'){
+      const monthIncome = SUPPORT+st.m.job;
+      const dep = Math.round(monthIncome*0.10);
+      html = `<div class="eyebrow" style="color:var(--green-bright)">PAY YOURSELF FIRST</div><h1 class="disp lg gold">MOVE 10% TO YOUR FUND</h1>
+        <div class="psub">10% of this month’s income (${RUPEE(monthIncome)}) = <b style="color:var(--gold-bright)">${RUPEE(dep)}</b></div>
+        <button class="pbtn big" onclick="window.__mm_ef(${dep})">Move it →</button>`;
+    }
+    else if(st.type==='card'){
+      const c = st.c; const canDip = state.ef>=c.c;
+      html = `<div class="eyebrow">DECISION ${st.idx+1} OF ${st.m.cards.length}</div>
+        <div class="card-stack"><div class="swipe-card" id="swipeCard"><span class="swipe-hint left" id="hintLeft">SKIP</span><span class="swipe-hint right" id="hintRight">PAY</span><div class="txt">"${c.t}"</div></div></div>
+        <h1 class="disp lg">${RUPEE(c.c)}</h1>
+        <div class="psub" style="font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;">Drag the card, or use the buttons.</div>
+        <div class="prow2"><button class="pbtn ghost" onclick="window.__mm_card(false)">✋ Skip</button><button class="pbtn" onclick="window.__mm_card(true)">✅ Pay ${RUPEE(c.c)}</button></div>
+        <button class="pbtn ghost" style="border-style:dashed;" ${canDip?'':'disabled'} onclick="window.__mm_card('ef')">🛡️ Use Emergency Fund ${canDip?'':'(not enough saved)'}</button>`;
+    }
+    else if(st.type==='invest'){
+      html = `<div class="eyebrow" style="color:var(--gold-bright)">QUARTERLY INVESTMENT ROUND</div><h1 class="disp lg">PUT SOME CASH TO WORK?</h1>
+        <div class="psub">Wallet: <b>${RUPEE(state.wallet)}</b>. Choose how much to invest this quarter.</div>
+        <div class="chiprow" id="amtChips">${[0,1000,2000,3500,5000].map(v=>`<div class="chip" data-v="${v}" onclick="window.__mm_pickAmt(${v})">${v===0?'None':RUPEE(v)}</div>`).join('')}</div>
+        <div class="strategy" id="stratBox" style="display:none;">${Object.entries(STRATS).map(([k,s])=>`<div class="strat-opt" data-k="${k}" onclick="window.__mm_pickStrat('${k}')"><div class="name">${s.label}</div><div class="desc">${s.desc}</div></div>`).join('')}</div>
+        <button class="pbtn big" id="investGo" onclick="window.__mm_invest()" disabled>Choose an amount first</button>`;
+    }
+    else if(st.type==='emergency'){
+      html = `<div class="eyebrow alert">EMERGENCY</div><h1 class="disp lg red">${st.m.n===9?'HOSPITAL + MEDICINE BILL':'A SECOND EMERGENCY'}</h1><h1 class="disp xl red">${RUPEE(st.m.emergency)}</h1>
+        <div class="psub">Due immediately. There’s no skipping this one.</div>
+        <button class="pbtn big" onclick="window.__mm_emergency(${st.m.emergency})">See what happens →</button>`;
+    }
+    else if(st.type==='reveal'){
+      html = `<div class="eyebrow">MARKET — MONTH ${st.m.n}</div><h1 class="disp lg">TAP WHEN THE PROJECTOR REVEALS IT</h1>
+        <button class="pbtn big" onclick="window.__mm_reveal(${st.m.n})">Reveal this month’s movement →</button>`;
+    }
+    else if(st.type==='recap'){
+      const total = state.wallet+state.ef+invTotal()-state.loan;
+      const label = st.m.trial ? 'TRIAL ROUND '+st.m.n.slice(1)+' DONE' : 'MONTH '+st.m.n+' CLOSED';
+      let nextLabel;
+      if(st.m.trial){ nextLabel = st.m.n==='T1' ? 'Continue to Trial Round 2 →' : 'Continue →'; }
+      else { nextLabel = st.m.n<monthsToPlay[monthsToPlay.length-1].n ? 'Continue to Month '+(st.m.n+1)+' →' : 'See your year →'; }
+      html = `<div class="eyebrow">${label}</div><h1 class="disp lg gold">${RUPEE(total)}</h1>
+        <div class="psub">Wallet ${RUPEE(state.wallet)} · Fund ${RUPEE(state.ef)} · Invested ${RUPEE(invTotal())}${state.loan?` · Loan owed ${RUPEE(state.loan)}`:''}</div>
+        ${st.m.trial ? '' : (showMath ? mathBlock(st.m) : `<button class="pbtn ghost" onclick="window.__mm_toggleMath()">📐 How was this calculated?</button>`)}
+        <button class="pbtn big" onclick="window.__mm_next()">${nextLabel}</button>`;
+    }
+    else if(st.type==='trialend'){
+      html = `<div class="eyebrow gold">PRACTICE OVER</div><h1 class="disp lg">READY FOR THE REAL TWO YEARS?</h1>
+        <div class="psub">Your trial numbers don’t count. Everything resets to zero here, and the real 24 months begin.</div>
+        <button class="pbtn big" onclick="window.__mm_startReal()">Start the real simulation →</button>`;
+    }
+    else if(st.type==='finale'){
+      const badges = computeBadges(); const total = finalScore();
+      html = `<div class="eyebrow gold">${isQuick?'TASTER COMPLETE':'TWO YEARS COMPLETE'}</div><h1 class="disp xl gold">${RUPEE(total)}</h1>
+        <div class="psub">Wallet ${RUPEE(state.wallet)} · Emergency Fund ${RUPEE(state.ef)} · Invested ${RUPEE(invTotal())}</div>
+        <div class="badge-grid">${badges.map(b=>`<div class="badge ${b.earned?'earned':''}"><div class="ic">${b.icon}</div><div class="n">${b.name}</div><div class="d">${b.desc}</div></div>`).join('')}</div>
+        ${isQuick? `<div class="footer-note">This was just a taster — nothing here goes on a leaderboard.</div>` : `<div class="footer-note">Tell your facilitator this number — she’ll add it to the leaderboard on the big screen.</div>`}
+        <button class="pbtn ghost" onclick="window.__mm_restart()">Play again</button>`;
+    }
+    stage.innerHTML = html; stage.classList.remove('enter'); void stage.offsetWidth; stage.classList.add('enter');
+    if(st.type==='card') attachSwipe();
+  }
+
+  window.__mm_start = ()=>{
+    state.name = document.getElementById('nameInput').value.trim(); save();
+    pnext();
+  };
+  window.__mm_next = pnext;
+  window.__mm_startReal = ()=>{ resetForRealGame(); pnext(); };
+  window.__mm_income = (total, loanDue)=>{ applyDelta({wallet: total-(loanDue||0)}); if(loanDue){ state.loan=0; save(); } pnext(); };
+  window.__mm_expense = (fixed)=>{ applyDelta({wallet:-fixed}); pnext(); };
+  window.__mm_ef = (amt)=>{ applyDelta({wallet:-amt, ef:amt}); pnext(); };
+  window.__mm_toggleMath = ()=>{ showMath=true; prender(); };
+  window.__mm_card = (choice)=>{
+    const st = program[pi]; const c = st.c;
+    if(choice===true){ applyDelta({wallet:-c.c}); if(c.tag==='scam') state.flags.scamPaid=true; if(c.tag==='social') state.flags.socialPaid++; if(c.tag==='selfinvest') state.flags.selfinvestPaid++; }
+    else if(choice==='ef'){ applyDelta({ef:-c.c}); state.flags.dipUsedForNonEmergency=true; pflash('bad'); }
+    if(c.tag==='social') state.flags.socialTotal++;
+    save(); pnext();
+  };
+  window.__mm_pickAmt = (v)=>{
+    chosenAmt=v;
+    document.querySelectorAll('#amtChips .chip').forEach(el=>el.classList.toggle('active', Number(el.dataset.v)===v));
+    const box=document.getElementById('stratBox'), go=document.getElementById('investGo');
+    if(v===0){ box.style.display='none'; go.disabled=false; go.textContent='Skip investing this quarter →'; chosenStrat=null; }
+    else { box.style.display='flex'; go.disabled=!chosenStrat; go.textContent = chosenStrat?'Invest '+RUPEE(v)+' →':'Pick a strategy'; }
+  };
+  window.__mm_pickStrat = (k)=>{ chosenStrat=k; document.querySelectorAll('.strat-opt').forEach(el=>el.classList.toggle('active', el.dataset.k===k)); const go=document.getElementById('investGo'); go.disabled=false; go.textContent='Invest '+RUPEE(chosenAmt)+' →'; };
+  window.__mm_invest = ()=>{
+    if(chosenAmt>0 && chosenStrat){ const s=STRATS[chosenStrat].split; state.gold+=chosenAmt*s.gold; state.sip+=chosenAmt*s.sip; state.stocks+=chosenAmt*s.stocks; state.wallet-=chosenAmt; state.flags.investRounds++;
+      animateStat('wallet','vWallet'); flashDelta(-chosenAmt,'dWallet'); animateStat('inv','vInv'); flashDelta(chosenAmt,'dInv'); }
+    chosenAmt=null; chosenStrat=null; save(); pnext();
+  };
+  window.__mm_emergency = (bill)=>{
+    const stage = document.getElementById('pstage'); pshake(); pflash('bad');
+    if(state.ef>=bill){ state.ef-=bill; save(); animateStat('ef','vEF'); flashDelta(-bill,'dEF');
+      stage.innerHTML = `<div class="eyebrow" style="color:var(--green-bright)">HANDLED</div><h1 class="disp lg gold">PAID FROM YOUR EMERGENCY FUND</h1><div class="psub">No loan, no panic. This is exactly what the fund was for.</div><button class="pbtn big" onclick="window.__mm_next()">Continue →</button>`;
+    } else { const gap=bill-state.ef; const loanCost=Math.round(gap*1.2); state.ef=0; state.loan+=loanCost; save();
+      const v=document.getElementById('vEF'); v.textContent=RUPEE(0); v.dataset.raw=0;
+      stage.innerHTML = `<div class="eyebrow alert">NOT ENOUGH SAVED</div><h1 class="disp lg red">PENALTY LOAN TAKEN</h1>
+        <div class="pledger"><div class="plrow"><span>Fund covers</span><span>${RUPEE(bill-gap)}</span></div><div class="plrow"><span>Borrowed to cover the rest</span><span>${RUPEE(gap)}</span></div>
+        <div class="plrow total"><span>Owed back next month</span><span class="v" style="color:var(--red-bright)">${RUPEE(loanCost)}</span></div></div>
+        <button class="pbtn big" onclick="window.__mm_next()">Continue →</button>`;
+    }
+  };
+  window.__mm_reveal = (mn)=>{
+    const mk = (market && market[mn-1]) || defaultMarket()[mn-1];
+    const before = invTotal();
+    state.gold*=(1+mk.gold/100); state.sip*=(1+mk.sip/100); state.stocks*=(1+mk.stocks/100);
+    const delta = invTotal()-before;
+    const stage = document.getElementById('pstage');
+    const bad = mk.stocks<0; if(bad){ pshake(); pflash('bad'); } else { pflash('good'); }
+    animateStat('inv','vInv'); flashDelta(delta,'dInv'); save();
+    stage.innerHTML = `<div class="eyebrow">RESULTS</div><h1 class="disp lg">THIS MONTH’S MOVEMENT</h1>
+      <div class="ticker" style="display:flex;justify-content:space-around;gap:8px;">
+        <div class="tk" style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--paper-dim);text-transform:uppercase;">Gold</span><span style="font-family:'Anton',sans-serif;font-size:20px;color:${mk.gold<0?'var(--red-bright)':'var(--green-bright)'}">${mk.gold<0?'▼':'▲'} ${Math.abs(mk.gold).toFixed(1)}%</span></div>
+        <div class="tk" style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--paper-dim);text-transform:uppercase;">SIP</span><span style="font-family:'Anton',sans-serif;font-size:20px;color:${mk.sip<0?'var(--red-bright)':'var(--green-bright)'}">${mk.sip<0?'▼':'▲'} ${Math.abs(mk.sip).toFixed(1)}%</span></div>
+        <div class="tk" style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--paper-dim);text-transform:uppercase;">Stocks</span><span style="font-family:'Anton',sans-serif;font-size:20px;color:${mk.stocks<0?'var(--red-bright)':'var(--green-bright)'}">${mk.stocks<0?'▼':'▲'} ${Math.abs(mk.stocks).toFixed(1)}%</span></div>
+      </div>
+      <div class="psub">Your investments: ${RUPEE(before)} → <b style="color:var(--gold-bright)">${RUPEE(invTotal())}</b></div>
+      <button class="pbtn big" onclick="window.__mm_afterReveal()">Continue →</button>`;
+  };
+  window.__mm_afterReveal = ()=>{ pnext(); };
+  window.__mm_restart = ()=>{
+    state = { name:'', wallet:0, ef:0, gold:0, sip:0, stocks:0, loan:0, quarterIncomeSum:0, flags:{dipUsedForNonEmergency:false, scamPaid:false, socialPaid:0, socialTotal:0, selfinvestPaid:0, investRounds:0} };
+    save(); pi=0; prender();
+  };
+
+  function computeBadges(){
+    const f = state.flags;
+    return [
+      {icon:'🛡️', name:'Fund Guardian', desc:'Never dipped in except for the real emergencies', earned: !f.dipUsedForNonEmergency},
+      {icon:'🎯', name:'Scam Spotter', desc:'Walked away from every "guaranteed returns" pitch', earned: !f.scamPaid},
+      {icon:'💛', name:'Community Anchor', desc:'Showed up for friends and community all the way through', earned: f.socialTotal>0 && f.socialPaid/f.socialTotal>=0.7},
+      {icon:'📈', name:'Steady Investor', desc:'Kept investing through the ups and downs', earned: f.investRounds>=2},
+      {icon:'🌱', name:'Self Investor', desc:'Spent on skills and opportunities, not just wants', earned: f.selfinvestPaid>=1},
+      {icon:'🔁', name:'Comeback', desc:'Rebuilt the fund after an emergency', earned: state.ef>=4000},
+    ];
+  }
+
+  function attachSwipe(){
+    const card = document.getElementById('swipeCard'); if(!card) return;
+    let sx=0,dx=0,dragging=false;
+    const hintL=document.getElementById('hintLeft'), hintR=document.getElementById('hintRight');
+    function start(x){ dragging=true; sx=x; }
+    function move(x){ if(!dragging) return; dx=x-sx; card.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`; hintL.style.opacity=dx<-20?Math.min(1,-dx/100):0; hintR.style.opacity=dx>20?Math.min(1,dx/100):0; }
+    function end(){ if(!dragging) return; dragging=false;
+      if(dx>90){ card.style.transform='translateX(400px) rotate(18deg)'; card.style.transition='transform .3s ease'; setTimeout(()=>window.__mm_card(true),200); }
+      else if(dx<-90){ card.style.transform='translateX(-400px) rotate(-18deg)'; card.style.transition='transform .3s ease'; setTimeout(()=>window.__mm_card(false),200); }
+      else { card.style.transition='transform .25s ease'; card.style.transform=''; hintL.style.opacity=0; hintR.style.opacity=0; }
+      dx=0;
+    }
+    card.addEventListener('pointerdown', e=>{ card.style.transition=''; start(e.clientX); card.setPointerCapture(e.pointerId); });
+    card.addEventListener('pointermove', e=>move(e.clientX));
+    card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
+  }
+
+  prender();
+}
+
+/* =====================================================================
+   MATH SHEET (printable reference — how every number is calculated)
+   ===================================================================== */
+function renderMathSheet(){
+  document.body.className='mode-math';
+  const m3 = MONTHS[2], m9 = MONTHS[8];
+  root.innerHTML = `<div class="mathsheet"><div class="inner">
+    <button class="print-btn" onclick="window.print()" style="float:right;">Print this page</button>
+    <h1>Money Matters — Rules & the Maths</h1>
+    <p>Everything you need before you play: how the game works, and the exact arithmetic behind every number it shows. This is the page to read first.</p>
+
+    <h2>How to play</h2>
+    <p><b>Two years, twenty-four months.</b> One person runs the projector (the facilitator); everyone else plays on her own phone, scanned in from a QR code. The screen tells the story out loud, month by month — income, expenses, decisions, the market. Your phone does the actual arithmetic and keeps your own private running total.</p>
+    <p>Every month follows the same shape:</p>
+    <div class="formula">Income arrives → Fixed costs are paid → 10% moves to your Emergency Fund → two decision cards → (some months) an investing round → the market moves → you check your recap</div>
+    <p>You always have three balances: your <b>Wallet</b> (day-to-day spending), your <b>Emergency Fund</b> (only for real emergencies — the game will force one on you, more than once), and your <b>Investments</b> (Gold, SIP and Stocks). At the very end, tell the facilitator your final score — she enters everyone's numbers and reveals the leaderboard on the big screen when she's ready.</p>
+
+    <h2>1. Monthly income</h2>
+    <div class="formula">Income = ₹2,500 (pocket money) + ₹2,500 (groceries) + that month's work income</div>
+    <div class="example"><p><b>Month 3 example:</b> ₹2,500 + ₹2,500 + ₹15,000 (work) = <b>₹20,000</b></p></div>
+
+    <h2>2. After fixed expenses</h2>
+    <div class="formula">Remaining = Income − Fixed expenses</div>
+    <div class="example"><p><b>Month 3:</b> ₹20,000 − ₹1,800 = <b>₹18,200</b></p></div>
+
+    <h2>3. Emergency Fund deposit — every month</h2>
+    <div class="formula">Deposit = 10% × that month's total income</div>
+    <div class="example"><p><b>Month 3:</b> 10% × ₹20,000 = <b>₹2,000</b>, moved automatically before anything else is spent.</p></div>
+
+    <h2>4. A decision card</h2>
+    <div class="formula">Pay → Wallet −= cost &nbsp;|&nbsp; Skip → no change &nbsp;|&nbsp; Use Emergency Fund → Fund −= cost</div>
+    <div class="example"><p>A ₹1,200 card, paid: Wallet decreases by ₹1,200. Skipped: nothing changes. Paid from the fund instead: the Emergency Fund decreases by ₹1,200, and the Wallet is untouched.</p></div>
+
+    <h2>5. Investment growth — every month, automatically</h2>
+    <div class="formula">New balance = Old balance × (1 + that month's % change)</div>
+    <div class="example"><p><b>Month 9 example (the first real dip):</b> if Stocks held ₹1,000 going into the month and the market moves −7% that month, the new balance is ₹1,000 × (1 − 0.07) = <b>₹930</b>. Gold and SIP are calculated the same way, with their own (usually smaller, steadier) percentage.</p></div>
+    <p>This happens every month to whatever is currently invested — even in months with no new investing round.</p>
+
+    <h2>6. The Emergency (Months 9 and 21)</h2>
+    <div class="formula">If Emergency Fund ≥ bill → Fund −= bill, no loan. If Emergency Fund &lt; bill → shortfall = bill − Fund; Fund → 0; Loan owed = shortfall × 1.20</div>
+    <div class="example"><p><b>Month 9:</b> the bill is ₹7,000. If your fund has only ₹4,000 saved, the shortfall is ₹3,000, and the loan owed next month is ₹3,000 × 1.20 = <b>₹3,600</b> — an extra ₹600 for not having enough saved. That loan is automatically deducted from your Month 10 income.</p></div>
+
+    <h2>7. Final score</h2>
+    <div class="formula">Final score = Wallet + Emergency Fund + Investments − any outstanding loan</div>
+    <p>This is the number that goes on the leaderboard when the facilitator chooses to reveal it — not before.</p>
+
+    <p style="margin-top:30px; font-size:12.5px; opacity:.7;">Money Matters — Simulation · GamesForEd × Active Canvas</p>
+  </div></div>`;
+}
+</script>
+
+</body>
+</html>
