@@ -345,11 +345,16 @@ let fdb = null;
 try{
   firebase.initializeApp(firebaseConfig);
   fdb = firebase.firestore();
-  // Some school/venue wifi blocks the persistent WebChannel connection Firestore prefers,
-  // which makes it silently fall back to slow auto-detected long-polling (real-world delays
-  // of 30s+). Forcing long-polling up front skips that slow fallback dance entirely.
-  fdb.settings({ experimentalForceLongPolling: true, merge: true });
 }catch(e){ fdb = null; }
+if(fdb){
+  try{
+    // Some school/venue wifi blocks the persistent WebChannel connection Firestore prefers,
+    // which makes it silently fall back to slow auto-detected long-polling (real-world delays
+    // of 30s+). Forcing long-polling up front skips that slow fallback dance entirely. This is
+    // best-effort — if it throws for any reason, fdb stays usable with default settings.
+    fdb.settings({ experimentalForceLongPolling: true });
+  }catch(e){}
+}
 
 function fbWritePlayer(id, name){
   if(!fdb) return;
